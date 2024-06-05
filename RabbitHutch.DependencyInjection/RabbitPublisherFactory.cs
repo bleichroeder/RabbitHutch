@@ -159,11 +159,14 @@ namespace RabbitHutch.DependencyInjection
             if (_instances.TryGetValue(name, out object? value) is false)
             {
                 logger ??= loggerFactory.CreateLogger<QueueingRabbitPublisher<T>>();
-                DummyRabbitPublisher<T> publisher = new(publisherSettings, lifecycleProfile, serializer, routingKeyGenerator, logger);
+                DummyRabbitPublisher<T> publisher = new(publisherSettings, lifecycleProfile, serializer, routingKeyGenerator, logger)
+                {
+                    Name = name
+                };
                 value = publisher;
                 _instances.Add(name, publisher);
 
-                logger.LogDebug("Created {publisherType} with name {name}", typeof(DummyRabbitPublisher<T>).Name, name);
+                publisherLogger.LogDebug("Created {publisherType} with name {name}", typeof(DummyRabbitPublisher<T>).Name, name);
             }
             return (IRabbitPublisher<T>)value;
         }
@@ -243,12 +246,15 @@ namespace RabbitHutch.DependencyInjection
             if (_instances.TryGetValue(name, out object? value) is false)
             {
                 logger ??= loggerFactory.CreateLogger<QueueingRabbitPublisher<T>>();
-                QueueingRabbitPublisher<T> publisher = new(publisherSettings, lifecycleProfile, serializer, routingKeyGenerator, logger);
+                QueueingRabbitPublisher<T> publisher = new(publisherSettings, lifecycleProfile, serializer, routingKeyGenerator, logger)
+                {
+                    Name = name
+                };
                 publisher.Start();
                 value = publisher;
                 _instances.Add(name, value);
 
-                logger.LogDebug("Created {publisherType} with name {name}", typeof(QueueingRabbitPublisher<T>).Name, name);
+                publisherLogger.LogDebug("Created {publisherType} with name {name}", typeof(QueueingRabbitPublisher<T>).Name, name);
             }
             return (IRabbitPublisher<T>)value;
         }
@@ -328,11 +334,14 @@ namespace RabbitHutch.DependencyInjection
             if (_instances.TryGetValue(name, out object? value) is false)
             {
                 logger ??= loggerFactory.CreateLogger<QueueingRabbitPublisher<T>>();
-                RabbitPublisher<T> publisher = new(settings, lifecycleProfile, serializer, routingKeyGenerator, logger);
+                RabbitPublisher<T> publisher = new(settings, lifecycleProfile, serializer, routingKeyGenerator, logger)
+                {
+                    Name = name
+                };
                 value = publisher;
                 _instances.Add(name, value);
 
-                logger.LogDebug("Created {publisherType} with name {name}", typeof(RabbitPublisher<T>).Name, name);
+                publisherLogger.LogDebug("Created {publisherType} with name {name}", typeof(RabbitPublisher<T>).Name, name);
             }
             return (IRabbitPublisher<T>)value;
         }

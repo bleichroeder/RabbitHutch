@@ -40,6 +40,11 @@ namespace RabbitHutch.Publishers
         public ILogger? Logger { get; set; }
 
         /// <summary>
+        /// Gets or sets the name of the publisher.
+        /// </summary>
+        public string? Name { get; set; }
+
+        /// <summary>
         /// Gets or sets the RabbitConfiguration.
         /// </summary>
         public required IRabbitPublisherSettings RabbitConfiguration { get; set; }
