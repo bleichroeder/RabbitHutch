@@ -3,10 +3,10 @@
 namespace RabbitHutch.DependencyInjection
 {
     /// <summary>
-    /// Wrapper for registering a <see cref="IRabbitPublisher{T}"/> as a hosted service.
+    /// Wrapper for registering a consumer or publisher as a hosted service.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class HostedRabbitPublisherWrapper<T>(T instance) : IHostedService where T : IHostedService
+    public class HostedRabbitWrapper<T>(T instance) : IHostedService where T : IHostedService
     {
         private readonly T _instance = instance;
 

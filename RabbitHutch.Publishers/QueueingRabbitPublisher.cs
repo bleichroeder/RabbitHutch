@@ -32,7 +32,7 @@ namespace RabbitHutch.Publishers
         public QueueingRabbitPublisher(IQueueingRabbitPublisherSettings rabbitPublisherSettings,
                                        ILogger? logger)
             : this(rabbitPublisherSettings,
-                   ConnectionLifecycleProfiles.DefaultPublisherConnectionLifecycleProfile(),
+                   ConnectionLifecycleProfiles.DefaultConnectionLifecycleProfile(),
                    MessageSerializers.DefaultMessageSerializer<T>(),
                    RoutingKeyGenerators.DefaultRoutingKeyGenerator<T>(),
                    logger)
@@ -108,7 +108,7 @@ namespace RabbitHutch.Publishers
             RabbitConfiguration = rabbitConfiguration;
             Logger = logger;
 
-            _queueManagerThread = new Thread(async () => await QueueManager())
+            _queueManagerThread = new Thread(async () => await RunAsync())
             {
                 Name = $"{GetType().Name}-{typeof(T).Name}"
             };
@@ -126,7 +126,7 @@ namespace RabbitHutch.Publishers
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public override Task StopAsync(CancellationToken cancellationToken) => Task.Run(Shutdown, cancellationToken);
+        public override Task StopAsync(CancellationToken cancellationToken) => Task.Run(ShutdownAsync, cancellationToken);
 
         /// <summary>
         /// Starts the <see cref="QueueingRabbitPublisher{T}"/>
@@ -144,7 +144,7 @@ namespace RabbitHutch.Publishers
         /// <summary>
         /// Stops the <see cref="QueueingRabbitPublisher{T}"/>
         /// </summary>
-        public async Task Shutdown()
+        public async Task ShutdownAsync()
         {
             Logger?.LogInformation("The {typeof(T).Name} {GetType().Name} is shutting down.", typeof(T).Name, GetType().Name);
 
@@ -172,9 +172,9 @@ namespace RabbitHutch.Publishers
         /// <summary>
         /// Manages the publication queue.
         /// </summary>
-        private async Task QueueManager()
+        private async Task RunAsync()
         {
-            Logger?.LogDebug("{typeof(T).Name} {nameof(QueueManager)} is starting.", typeof(T).Name, nameof(QueueManager));
+            Logger?.LogDebug("{typeof(T).Name} {nameof(QueueManager)} is starting.", typeof(T).Name, nameof(RunAsync));
 
             if (await InitializeRabbitAsync() is false)
             {
@@ -207,7 +207,7 @@ namespace RabbitHutch.Publishers
 
             _isRunning = false;
 
-            Logger?.LogWarning("The {typeof(T).Name} {nameof(QueueManager)} has stopped.", typeof(T).Name, nameof(QueueManager));
+            Logger?.LogWarning("The {typeof(T).Name} {nameof(QueueManager)} has stopped.", typeof(T).Name, nameof(RunAsync));
         }
 
         /// <summary>
@@ -275,7 +275,7 @@ namespace RabbitHutch.Publishers
         /// <summary>
         /// In QueueingRabbitPublishers, rather than directly publish,
         /// this method instead enqueues the provided method as a <see cref="IQueueingRabbitPublisherItem{T}"/>
-        /// to be published by the <see cref="QueueManager"/>.
+        /// to be published by the <see cref="RunAsync"/>.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="headers"></param>
@@ -289,7 +289,7 @@ namespace RabbitHutch.Publishers
         /// <summary>
         /// In QueueingRabbitPublishers, rather than directly publish,
         /// this method instead enqueues the provided method as a <see cref="IQueueingRabbitPublisherItem{T}"/>
-        /// to be published by the <see cref="QueueManager"/>.
+        /// to be published by the <see cref="RunAsync"/>.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="headers"></param>
@@ -303,7 +303,7 @@ namespace RabbitHutch.Publishers
         /// <summary>
         /// In QueueingRabbitPublishers, rather than directly publish,
         /// this method instead enqueues the provided method as a <see cref="IQueueingRabbitPublisherItem{T}"/>
-        /// to be published by the <see cref="QueueManager"/>.
+        /// to be published by the <see cref="RunAsync"/>.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="routingKey"></param>
@@ -316,7 +316,7 @@ namespace RabbitHutch.Publishers
         /// <summary>
         /// In QueueingRabbitPublishers, rather than directly publish,
         /// this method instead enqueues the provided method as a <see cref="IQueueingRabbitPublisherItem{T}"/>
-        /// to be published by the <see cref="QueueManager"/>.
+        /// to be published by the <see cref="RunAsync"/>.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="routingKey"></param>

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using RabbitHutch.Core.ConnectionLifecycle;
-using RabbitHutch.Core.Routing;
+using RabbitHutch.Core.Delegates;
 using RabbitHutch.Core.Serialization;
 
 namespace RabbitHutch.DependencyInjection
@@ -9,16 +9,13 @@ namespace RabbitHutch.DependencyInjection
     /// Interface for Rabbit publisher builder configuration context.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public interface IRabbitPublisherBuilderConfigurationContext<T>
+    public interface IRabbitConsumerBuilderConfigurationContext<T>
     {
         /// <summary>
         /// Gets the publisher Name.
         /// </summary>
         string Name { get; }
 
-        /// <summary>
-        /// Gets the logger.
-        /// </summary>
         ILogger? Logger { get; }
 
         /// <summary>
@@ -29,48 +26,48 @@ namespace RabbitHutch.DependencyInjection
         /// <summary>
         /// Gets the serializer delegate.
         /// </summary>
-        MessageSerializerDelegate<T> SerializerDelegate { get; }
+        MessageDeserializerFromBytesDelegate<T> DeserializationDelegate { get; }
 
         /// <summary>
-        /// Gets the routing key delegate.
+        /// Gets the message recieved delegate.
         /// </summary>
-        RoutingKeyGeneratorDelegate<T> RoutingKeyDelegate { get; }
+        AsyncNewMessageCallbackDelegate<T> MessageCallbackDelegate { get; }
 
         /// <summary>
         /// Sets the serializer.
         /// </summary>
         /// <param name="serializerDelegate"></param>
-        RabbitPublisherBuilderConfigurationContext<T> WithSerializer(Func<T, string> serializerDelegate);
+        RabbitConsumerBuilderConfigurationContext<T> WithDeserializer(Func<byte[], T?> deserializerFunction);
 
         /// <summary>
         /// Sets the routing key formatter.
         /// </summary>
         /// <param name="routingKeyGenerator"></param>
-        RabbitPublisherBuilderConfigurationContext<T> WithRoutingKeyFormatter(Func<T, string> routingKeyGenerator);
+        RabbitConsumerBuilderConfigurationContext<T> WithNewMessageDelegate(Func<T, Task<bool>> messageRecievedDelegate);
 
         /// <summary>
         /// Registers the publisher as a hosted service.
         /// </summary>
-        RabbitPublisherBuilderConfigurationContext<T> RegisterAsHostedService();
+        RabbitConsumerBuilderConfigurationContext<T> RegisterAsHostedService();
 
         /// <summary>
         /// Sets the connection lifecycle profile.
         /// </summary>
         /// <param name="connectionLifecycleProfile"></param>
-        RabbitPublisherBuilderConfigurationContext<T> WithConnectionLifecycleProfile(IConnectionLifecycleProfile connectionLifecycleProfile);
+        RabbitConsumerBuilderConfigurationContext<T> WithConnectionLifecycleProfile(IConnectionLifecycleProfile connectionLifecycleProfile);
 
         /// <summary>
         /// Sets the publisher name.
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        RabbitPublisherBuilderConfigurationContext<T> WithName(string name);
+        RabbitConsumerBuilderConfigurationContext<T> WithName(string name);
 
         /// <summary>
-        /// Specifies a custom logger for the publisher.
+        /// Sets the logger.
         /// </summary>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public RabbitPublisherBuilderConfigurationContext<T> WithLogger(ILogger logger);
+        RabbitConsumerBuilderConfigurationContext<T> WithLogger(ILogger logger);
     }
 }
