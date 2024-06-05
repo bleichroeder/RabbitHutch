@@ -10,7 +10,7 @@
         /// This profile will attempt to retry publication indefinitely with a 5 second delay between retries.
         /// </summary>
         /// <returns></returns>
-        public static IConnectionLifecycleProfile DefaultPublisherConnectionLifecycleProfile() => new PublisherConnectionLifecycleProfile();
+        public static IConnectionLifecycleProfile DefaultConnectionLifecycleProfile() => new PublisherConnectionLifecycleProfile();
 
         /// <summary>
         /// Default publisher lifecycle profile.
@@ -19,7 +19,7 @@
         /// <param name="maxRetries"></param>
         /// <param name="reconnectDelay"></param>
         /// <returns></returns>
-        public static IConnectionLifecycleProfile DefaultPublisherConnectionLifecycleProfile(int maxRetries, TimeSpan reconnectDelay)
+        public static IConnectionLifecycleProfile DefaultConnectionLifecycleProfile(int maxRetries, TimeSpan reconnectDelay)
             => new PublisherConnectionLifecycleProfile(maxRetries, reconnectDelay);
     }
 }

@@ -6,46 +6,18 @@ namespace RabbitHutch.Demo.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController(ILogger<WeatherForecastController> logger, IRabbitPublisherFactory rabbitPublisherFactory) : ControllerBase
+    public class WeatherForecastController(IRabbitPublisherFactory rabbitPublisherFactory) : ControllerBase
     {
-        private static readonly string[] Summaries =
-        [
-            "Freezing",
-            "Bracing",
-            "Chilly",
-            "Cool",
-            "Mild",
-            "Warm",
-            "Balmy",
-            "Hot",
-            "Sweltering",
-            "Scorching"
-        ];
-
-        private readonly ILogger<WeatherForecastController> _logger = logger;
-
         private readonly IRabbitPublisher<WeatherForecast> _rabbitPublisher = rabbitPublisherFactory.GetPublisher<WeatherForecast>();
 
         [HttpGet(Name = "GetWeatherForecast")]
-        public async Task<IEnumerable<WeatherForecast>> Get()
+        public async Task<WeatherForecast> Get()
         {
-            List<WeatherForecast> forecasts = [];
+            WeatherForecast forecast = new();
 
-            foreach (int i in Enumerable.Range(1, 5))
-            {
-                WeatherForecast weatherForecast = new()
-                {
-                    Date = DateOnly.FromDateTime(DateTime.Now.AddDays(i)),
-                    TemperatureC = Random.Shared.Next(-20, 55),
-                    Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-                };
+            await _rabbitPublisher.PublishAsync(forecast);
 
-                forecasts.Add(weatherForecast);
-
-                await _rabbitPublisher.PublishAsync(weatherForecast);
-            }
-
-            return forecasts.ToArray();
+            return forecast;
         }
     }
 }

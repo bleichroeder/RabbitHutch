@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using RabbitHutch.Core.ConnectionLifecycle;
-using RabbitHutch.Core.Routing;
+using RabbitHutch.Core.Delegates;
 using RabbitHutch.Core.Serialization;
 
 namespace RabbitHutch.DependencyInjection
@@ -9,7 +9,7 @@ namespace RabbitHutch.DependencyInjection
     /// The RabbitPublisherBuilderConfigurationContext.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class RabbitPublisherBuilderConfigurationContext<T> : IRabbitPublisherBuilderConfigurationContext<T>
+    public class RabbitConsumerBuilderConfigurationContext<T> : IRabbitConsumerBuilderConfigurationContext<T>
     {
         /// <summary>
         /// Gets the publisher Name.
@@ -24,12 +24,12 @@ namespace RabbitHutch.DependencyInjection
         /// <summary>
         /// Gets the serializer delegate.
         /// </summary>
-        public MessageSerializerDelegate<T> SerializerDelegate { get; private set; } = MessageSerializers.DefaultMessageSerializer<T>();
+        public MessageDeserializerFromBytesDelegate<T> DeserializationDelegate { get; private set; } = MessageDeserializers.DefaultMessageDeserializerFromBytes<T>();
 
         /// <summary>
         /// Gets the routing key delegate.
         /// </summary>
-        public RoutingKeyGeneratorDelegate<T> RoutingKeyDelegate { get; private set; } = RoutingKeyGenerators.DefaultRoutingKeyGenerator<T>();
+        public AsyncNewMessageCallbackDelegate<T> MessageCallbackDelegate { get; private set; } = MessageReceivedDelegates.DefaultNewMessageCallback<T>();
 
         /// <summary>
         /// Gets the connection lifecycle profile.
@@ -46,9 +46,9 @@ namespace RabbitHutch.DependencyInjection
         /// </summary>
         /// <param name="serializerDelegate"></param>
         /// <returns></returns>
-        public RabbitPublisherBuilderConfigurationContext<T> WithSerializer(Func<T, string> serializerDelegate)
+        public RabbitConsumerBuilderConfigurationContext<T> WithDeserializer(Func<byte[], T?> serializerDelegate)
         {
-            SerializerDelegate = new MessageSerializerDelegate<T>(serializerDelegate);
+            DeserializationDelegate = new MessageDeserializerFromBytesDelegate<T>(serializerDelegate);
             return this;
         }
 
@@ -57,9 +57,9 @@ namespace RabbitHutch.DependencyInjection
         /// </summary>
         /// <param name="routingKeyGenerator"></param>
         /// <returns></returns>
-        public RabbitPublisherBuilderConfigurationContext<T> WithRoutingKeyFormatter(Func<T, string> routingKeyGenerator)
+        public RabbitConsumerBuilderConfigurationContext<T> WithNewMessageDelegate(Func<T, Task<bool>> messageRecievedDelegate)
         {
-            RoutingKeyDelegate = new RoutingKeyGeneratorDelegate<T>(routingKeyGenerator);
+            MessageCallbackDelegate = new AsyncNewMessageCallbackDelegate<T>(messageRecievedDelegate);
             return this;
         }
 
@@ -68,7 +68,7 @@ namespace RabbitHutch.DependencyInjection
         /// </summary>
         /// <param name="profile"></param>
         /// <returns></returns>
-        public RabbitPublisherBuilderConfigurationContext<T> WithConnectionLifecycleProfile(IConnectionLifecycleProfile profile)
+        public RabbitConsumerBuilderConfigurationContext<T> WithConnectionLifecycleProfile(IConnectionLifecycleProfile profile)
         {
             ConnectionLifecycleProfile = profile;
             return this;
@@ -78,7 +78,7 @@ namespace RabbitHutch.DependencyInjection
         /// Registers the publisher as a hosted service.
         /// </summary>
         /// <returns></returns>
-        public RabbitPublisherBuilderConfigurationContext<T> RegisterAsHostedService()
+        public RabbitConsumerBuilderConfigurationContext<T> RegisterAsHostedService()
         {
             AsHostedService = true;
             return this;
@@ -90,7 +90,7 @@ namespace RabbitHutch.DependencyInjection
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public RabbitPublisherBuilderConfigurationContext<T> WithName(string name)
+        public RabbitConsumerBuilderConfigurationContext<T> WithName(string name)
         {
             Name = name;
             return this;
@@ -101,7 +101,7 @@ namespace RabbitHutch.DependencyInjection
         /// </summary>
         /// <param name="logger"></param>
         /// <returns></returns>
-        public RabbitPublisherBuilderConfigurationContext<T> WithLogger(ILogger logger)
+        public RabbitConsumerBuilderConfigurationContext<T> WithLogger(ILogger logger)
         {
             Logger = logger;
             return this;

@@ -164,7 +164,7 @@ namespace RabbitHutch.Publishers
         /// </param>
         private void Dispose(bool disposing)
         {
-            if (!disposing || _isDisposed)
+            if (disposing is false || _isDisposed)
                 return;
 
             _channel?.Dispose();

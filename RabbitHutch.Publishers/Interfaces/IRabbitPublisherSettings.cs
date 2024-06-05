@@ -19,7 +19,7 @@
         /// Gets or sets the keys path.
         /// </summary>
         string? KeysPath { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the enable acks value.
         /// </summary>

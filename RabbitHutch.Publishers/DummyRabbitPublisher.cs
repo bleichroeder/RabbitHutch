@@ -23,7 +23,7 @@ namespace RabbitHutch.Publishers
         public DummyRabbitPublisher(IRabbitPublisherSettings rabbitConfiguration,
                                     ILogger? logger)
             : this(rabbitConfiguration,
-                   ConnectionLifecycleProfiles.DefaultPublisherConnectionLifecycleProfile(),
+                   ConnectionLifecycleProfiles.DefaultConnectionLifecycleProfile(),
                    MessageSerializers.DefaultMessageSerializer<T>(),
                    logger)
         { }
@@ -55,7 +55,7 @@ namespace RabbitHutch.Publishers
                                     RoutingKeyGeneratorDelegate<T> routingKeyGenerator,
                                     ILogger? logger)
             : this(rabbitConfiguration,
-                   ConnectionLifecycleProfiles.DefaultPublisherConnectionLifecycleProfile(),
+                   ConnectionLifecycleProfiles.DefaultConnectionLifecycleProfile(),
                    MessageSerializers.DefaultMessageSerializer<T>(),
                    routingKeyGenerator,
                    logger)

@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHutch.DependencyInjection", "RabbitHutch.DependencyInjection\RabbitHutch.DependencyInjection.csproj", "{CDA61C5C-F71D-4424-A233-14B5459F0024}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHutch.DependencyInjection", "RabbitHutch.DependencyInjection\RabbitHutch.DependencyInjection.csproj", "{CDA61C5C-F71D-4424-A233-14B5459F0024}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHutch.Publishers", "RabbitHutch.Publishers\RabbitHutch.Publishers.csproj", "{70E8A628-CC6C-4AA4-BFB7-0F2488994137}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHutch.Publishers", "RabbitHutch.Publishers\RabbitHutch.Publishers.csproj", "{70E8A628-CC6C-4AA4-BFB7-0F2488994137}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHutch.Core", "RabbitHutch.Core\RabbitHutch.Core.csproj", "{8919EE85-1B78-4738-B8EF-A37C3814D088}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHutch.Core", "RabbitHutch.Core\RabbitHutch.Core.csproj", "{8919EE85-1B78-4738-B8EF-A37C3814D088}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHutch.Demo", "RabbitHutch.Demo\RabbitHutch.Demo.csproj", "{7CCB9E52-B4A4-45EC-8371-47BEDF99CFAD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHutch.Demo", "RabbitHutch.Demo\RabbitHutch.Demo.csproj", "{7CCB9E52-B4A4-45EC-8371-47BEDF99CFAD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHutch.Consumers", "RabbitHutch.Consumers\RabbitHutch.Consumers.csproj", "{127788E9-0724-4933-BA35-04A0C1BEB0B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{7CCB9E52-B4A4-45EC-8371-47BEDF99CFAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7CCB9E52-B4A4-45EC-8371-47BEDF99CFAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CCB9E52-B4A4-45EC-8371-47BEDF99CFAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{127788E9-0724-4933-BA35-04A0C1BEB0B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{127788E9-0724-4933-BA35-04A0C1BEB0B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{127788E9-0724-4933-BA35-04A0C1BEB0B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{127788E9-0724-4933-BA35-04A0C1BEB0B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
