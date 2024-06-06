@@ -48,16 +48,18 @@ namespace RabbitHutch.DependencyInjection
         IRabbitConsumer<T> CreateDummyConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, ILogger? logger = null, string? name = null) where T : new();
         IRabbitConsumer<T> CreateDummyConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, MessageDeserializerFromBytesDelegate<T> deserializer, ILogger? logger = null, string? name = null) where T : new();
 
-        IRabbitConsumer<T> CreateBasicConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, ILogger? logger = null, string? name = null);
-        IRabbitConsumer<T> CreateBasicConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, MessageDeserializerFromBytesDelegate<T> deserializer, ILogger? logger = null, string? name = null);
+        IRabbitConsumer<T> CreateConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, ILogger? logger = null, string? name = null);
+        IRabbitConsumer<T> CreateConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, MessageDeserializerFromBytesDelegate<T> deserializer, ILogger? logger = null, string? name = null);
     }
 
     /// <summary>
     /// The <see cref="RabbitConsumerFactory"/>.
     /// </summary>
-    public class RabbitConsumerFactory(ILoggerFactory loggerFactory, ILogger<RabbitConsumerFactory> publisherLogger) : IRabbitConsumerFactory
+    public class RabbitConsumerFactory(ILoggerFactory loggerFactory, ILogger<RabbitConsumerFactory> publisherLogger, CancellationTokenSource? cancellationTokenSource) : IRabbitConsumerFactory
     {
         private static readonly Dictionary<string, object> _instances = [];
+
+        private readonly CancellationToken _cancellationToken = cancellationTokenSource?.Token ?? CancellationToken.None;
 
         /// <summary>
         /// Gets a <see cref="IRabbitPublisher{T}"/> by <see cref="type"/> key <see cref="{T}"/>.
@@ -115,7 +117,8 @@ namespace RabbitHutch.DependencyInjection
                 logger ??= loggerFactory.CreateLogger<DummyRabbitConsumer<T>>();
                 DummyRabbitConsumer<T> consumer = new(publisherSettings, lifecycleProfile, deserializer, newMessageCallback, logger)
                 {
-                    Name = name
+                    Name = name,
+                    CancellationToken = _cancellationToken
                 };
                 consumer.Start();
 
@@ -134,12 +137,12 @@ namespace RabbitHutch.DependencyInjection
         /// <param name="publisherSettings"></param>
         /// <param name="serializer"></param>
         /// <returns></returns>
-        public IRabbitConsumer<T> CreateBasicConsumer<T>(IRabbitConsumerSettings publisherSettings,
+        public IRabbitConsumer<T> CreateConsumer<T>(IRabbitConsumerSettings publisherSettings,
                                                          IConnectionLifecycleProfile lifecycleProfile,
                                                          AsyncNewMessageCallbackDelegate<T> newMessageCallback,
                                                          ILogger? logger,
                                                          string? name)
-            => CreateBasicConsumer(publisherSettings,
+            => CreateConsumer(publisherSettings,
                                    lifecycleProfile,
                                    newMessageCallback,
                                    MessageDeserializers.DefaultMessageDeserializerFromBytes<T>(),
@@ -155,7 +158,7 @@ namespace RabbitHutch.DependencyInjection
         /// <param name="serializer"></param>
         /// <param name="routingKeyGenerator"></param>
         /// <returns></returns>
-        public IRabbitConsumer<T> CreateBasicConsumer<T>(IRabbitConsumerSettings settings,
+        public IRabbitConsumer<T> CreateConsumer<T>(IRabbitConsumerSettings settings,
                                                          IConnectionLifecycleProfile lifecycleProfile,
                                                          AsyncNewMessageCallbackDelegate<T> newMessageCallback,
                                                          MessageDeserializerFromBytesDelegate<T> deserializer,
@@ -166,16 +169,17 @@ namespace RabbitHutch.DependencyInjection
             if (_instances.TryGetValue(name, out object? value) is false)
             {
                 logger ??= loggerFactory.CreateLogger<QueueingRabbitPublisher<T>>();
-                BasicRabbitConsumer<T> consumer = new(settings, lifecycleProfile, deserializer, newMessageCallback, logger)
+                RabbitConsumer<T> consumer = new(settings, lifecycleProfile, deserializer, newMessageCallback, logger)
                 {
-                    Name = name
+                    Name = name,
+                    CancellationToken = _cancellationToken
                 };
                 consumer.Start();
 
                 value = consumer;
                 _instances.Add(name, value);
 
-                publisherLogger.LogDebug("Created {consumerType} with name {name}", typeof(BasicRabbitConsumer<T>).Name, name);
+                publisherLogger.LogDebug("Created {consumerType} with name {name}", typeof(RabbitConsumer<T>).Name, name);
             }
             return (IRabbitConsumer<T>)value;
         }

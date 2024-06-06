@@ -1,4 +1,5 @@
 ﻿using RabbitHutch.Consumers.Interfaces;
+using System.Net.Mime;
 
 namespace RabbitHutch.Consumers
 {
@@ -13,6 +14,11 @@ namespace RabbitHutch.Consumers
         /// Gets or sets the exchange name.
         /// </summary>
         public string? ExchangeName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the value indicating whether to declare exchange.
+        /// </summary>
+        public bool DeclareExchange { get; set; }
 
         /// <summary>
         /// Gets or sets the queue name.
@@ -79,5 +85,155 @@ namespace RabbitHutch.Consumers
         /// Gets the <see cref="ManagementBaseUri"/> virtual host.
         /// </summary>
         public string ManagementVirtualHost => Uri.UnescapeDataString(ConnectionString?.AbsolutePath ?? string.Empty);
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        public RabbitConsumerSettings() { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="queueName"></param>
+        public RabbitConsumerSettings(Uri connectionString,
+                                      string exchangeName,
+                                      string queueName)
+            : this(connectionString, exchangeName, queueName, null)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="queueName"></param>
+        public RabbitConsumerSettings(string connectionString,
+                                      string exchangeName,
+                                      string queueName)
+            : this(new Uri(connectionString), exchangeName, queueName, null)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="queueName"></param>
+        /// <param name="routingKeys"></param>
+        public RabbitConsumerSettings(Uri connectionString,
+                                      string exchangeName,
+                                      string queueName,
+                                      string[]? routingKeys)
+            : this(connectionString, exchangeName, queueName, routingKeys, null)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="queueName"></param>
+        /// <param name="routingKeys"></param>
+        public RabbitConsumerSettings(string connectionString,
+                                      string exchangeName,
+                                      string queueName,
+                                      string[]? routingKeys)
+            : this(new Uri(connectionString), exchangeName, queueName, routingKeys, null)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="queueName"></param>
+        /// <param name="routingKeys"></param>
+        /// <param name="prefetchCount"></param>
+        public RabbitConsumerSettings(Uri connectionString,
+                                      string exchangeName,
+                                      string queueName,
+                                      string[]? routingKeys,
+                                      ushort? prefetchCount)
+            : this(connectionString, exchangeName, queueName, routingKeys, prefetchCount, null, null, null, null, null)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="queueName"></param>
+        /// <param name="routingKeys"></param>
+        /// <param name="prefetchCount"></param>
+        public RabbitConsumerSettings(string connectionString,
+                                      string exchangeName,
+                                      string queueName,
+                                      string[]? routingKeys,
+                                      ushort? prefetchCount)
+            : this(new Uri(connectionString), exchangeName, queueName, routingKeys, prefetchCount, null, null, null, null, null)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        /// <param name="exchangeName"></param>
+        /// <param name="connectionString"></param>
+        /// <param name="keysPath"></param>
+        /// <param name="enableAcks"></param>
+        /// <param name="contentType"></param>
+        public RabbitConsumerSettings(string connectionString,
+                                      string exchangeName,
+                                      string queueName,
+                                      string[]? routingKeys,
+                                      ushort? prefetchCount,
+                                      string? keysPath,
+                                      bool? autoAck,
+                                      bool? nackOnFalse,
+                                      bool? requeueOnNack,
+                                      Uri? managementBaseUri)
+            : this(new Uri(connectionString),
+                   exchangeName,
+                   queueName,
+                   routingKeys,
+                   prefetchCount,
+                   keysPath,
+                   autoAck,
+                   nackOnFalse,
+                   requeueOnNack,
+                   managementBaseUri)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitConsumerSettings"/> settings.
+        /// </summary>
+        /// <param name="exchangeName"></param>
+        /// <param name="connectionString"></param>
+        /// <param name="keysPath"></param>
+        /// <param name="enableAcks"></param>
+        /// <param name="contentType"></param>
+        public RabbitConsumerSettings(Uri connectionString,
+                                      string exchangeName,
+                                      string queueName,
+                                      string[]? routingKeys,
+                                      ushort? prefetchCount,
+                                      string? keysPath,
+                                      bool? autoAck,
+                                      bool? nackOnFalse,
+                                      bool? requeueOnNack,
+                                      Uri? managementBaseUri)
+        {
+            ExchangeName = exchangeName;
+            ConnectionString = connectionString;
+            QueueName = queueName;
+            RoutingKeys = routingKeys ?? ["#"];
+            PrefetchCount = prefetchCount ?? 20;
+            KeysPath = keysPath;
+            AutoAck = autoAck ?? false;
+            NackOnFalse = nackOnFalse ?? false;
+            RequeueOnNack = requeueOnNack ?? false;
+            ManagementBaseUri = managementBaseUri;
+        }
     }
 }

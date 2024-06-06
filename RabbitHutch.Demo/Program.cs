@@ -21,6 +21,12 @@ namespace RabbitHutch.Demo
             builder.Services.AddSwaggerGen();
             builder.Services.AddLogging();
 
+            // Register a CancellationTokenSource with the DI container.
+            // The factories will pass the source token to the consumers and publishers.
+            // This is not required.
+            CancellationTokenSource cancellationTokenSource = new();
+            builder.Services.AddSingleton(cancellationTokenSource);
+
             // Here we configure our Hutch.
             // We'll add a single dummy publisher and register it with the DI container.
             // Next we'll add a single dummy consumer and register it with the DI container.
@@ -67,6 +73,18 @@ namespace RabbitHutch.Demo
             });
 
             WebApplication? app = builder.Build();
+
+            // Register a callback to cancel the token source when the application is stopping.
+            app.Lifetime.ApplicationStopping.Register(() =>
+            {
+                cancellationTokenSource.Cancel();
+            });
+            Console.CancelKeyPress += (s, e) =>
+            {
+                cancellationTokenSource.Cancel();
+
+                e.Cancel = true;
+            };
 
             if (app.Environment.IsDevelopment())
             {

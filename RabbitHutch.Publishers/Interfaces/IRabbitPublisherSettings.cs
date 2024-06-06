@@ -11,6 +11,11 @@
         string? ExchangeName { get; set; }
 
         /// <summary>
+        /// Gets or sets the value indicating whether to declare exchange.
+        /// </summary>
+        bool DeclareExchange { get; set; }
+
+        /// <summary>
         /// Gets or sets the connection string.
         /// </summary>
         Uri? ConnectionString { get; set; }

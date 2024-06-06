@@ -54,6 +54,11 @@ namespace RabbitHutch.Consumers
         public string? Name { get; set; }
 
         /// <summary>
+        /// Gets or sets the cancellation token.
+        /// </summary>
+        public CancellationToken CancellationToken { get; set; }
+
+        /// <summary>
         /// Gets or sets the OnReceivedEvent.
         /// </summary>
         public EventHandler<BasicDeliverEventArgs>? OnReceivedEvent { get; set; }
@@ -88,7 +93,7 @@ namespace RabbitHutch.Consumers
         /// </summary>
         public EventHandler<BasicDeliverEventArgs> DefaultReceivedDelegate => async (ch, ea) =>
         {
-            Logger?.LogDebug("New Message Recieved: {ea.RoutingKey} [{ea.Body.Length} bytes]", ea.RoutingKey, ea.Body.Length);
+            Logger?.LogDebug("New Message Received: {ea.RoutingKey} [{ea.Body.Length} bytes]", ea.RoutingKey, ea.Body.Length);
 
             T? deserializedType = Deserializer(ea.Body.ToArray());
 
@@ -102,7 +107,7 @@ namespace RabbitHutch.Consumers
             bool delegateResult = await MessageCallbackDelegate(deserializedType);
 
             // If success we ack otherwise we nack.
-            if (delegateResult is true)
+            if (delegateResult)
             {
                 _model?.BasicAck(ea.DeliveryTag, false);
             }
@@ -111,27 +116,31 @@ namespace RabbitHutch.Consumers
                 if (RabbitConfiguration.NackOnFalse)
                     _model?.BasicNack(ea.DeliveryTag, false, RabbitConfiguration.RequeueOnNack);
             }
+
+            // Set the result of the TaskCompletionSource
+            if (ch is TaskCompletionSource<bool> tcs)
+            {
+                tcs.SetResult(delegateResult);
+            }
         };
 
         /// <summary>
         /// Initializes the RabbitMQ connection using the configured <see cref="IConnectionLifecycleProfile"/>.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> InitializeRabbitAsync()
+        public async Task<bool> InitializeRabbitAsync() => await InitializeRabbitAsync(CancellationToken);
+
+        /// <summary>
+        /// Initializes the RabbitMQ connection using the configured <see cref="IConnectionLifecycleProfile"/>.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> InitializeRabbitAsync(CancellationToken cancellationToken)
         {
-            int retryCount = 0;
+            int retryCount = -1;
             while (IsActive is false && retryCount <= LifecycleProfile.MaxRetries)
             {
                 try
                 {
-                    // Make sure we have a connection string.
-                    if (RabbitConfiguration.ConnectionString is null)
-                        throw new ArgumentNullException(nameof(RabbitConfiguration.ConnectionString));
-
-                    // Make sure we have an exchange name.
-                    if (RabbitConfiguration.ExchangeName is null)
-                        throw new ArgumentNullException(nameof(RabbitConfiguration.ExchangeName));
-
                     ConnectionFactory factory = new()
                     {
                         Uri = RabbitConfiguration.ConnectionString,
@@ -145,30 +154,48 @@ namespace RabbitHutch.Consumers
                         ClientProvidedName = $"{AppDomain.CurrentDomain.FriendlyName} on {Environment.MachineName}"
                     };
 
-                    Logger?.LogDebug("About to create connection with {RabbitConfiguration.ConnectionString.Host}.", RabbitConfiguration.ConnectionString.Host);
+                    Logger?.LogDebug("About to create connection with {RabbitConfiguration.ConnectionString.Host}.", RabbitConfiguration.ConnectionString?.Host);
 
                     _connection = factory.CreateConnection();
                     _model = _connection.CreateModel();
 
                     _model.BasicQos(0, RabbitConfiguration.PrefetchCount, false);
 
-                    try { _model.ExchangeDeclarePassive(RabbitConfiguration.ExchangeName); }
-                    catch { Logger?.LogWarning("Declaration of exchange {name} has failed.", RabbitConfiguration.ExchangeName); }
+                    try
+                    {
+                        _model.ExchangeDeclarePassive(RabbitConfiguration.ExchangeName);
+                    }
+                    catch
+                    {
+                        Logger?.LogWarning("Declaration of exchange {name} has failed.", RabbitConfiguration.ExchangeName);
+                    }
 
-                    try { _model.QueueDeclare(RabbitConfiguration.QueueName, true, false, false, null); }
-                    catch { Logger?.LogWarning("Declaration of queue {name} has failed.", RabbitConfiguration.QueueName); }
+                    try
+                    {
+                        _model.QueueDeclare(RabbitConfiguration.QueueName, true, false, false, null);
+                    }
+                    catch
+                    {
+                        Logger?.LogWarning("Declaration of queue {name} has failed.", RabbitConfiguration.QueueName);
+                    }
 
                     foreach (string routingKey in RabbitConfiguration.RoutingKeys)
                     {
-                        try { _model.QueueBind(RabbitConfiguration.QueueName, RabbitConfiguration.ExchangeName, routingKey, null); }
-                        catch { Logger?.LogWarning("Binding of routing-key {key} to queue {name} has failed.", routingKey, RabbitConfiguration.QueueName); }
+                        try
+                        {
+                            _model.QueueBind(RabbitConfiguration.QueueName, RabbitConfiguration.ExchangeName, routingKey, null);
+                        }
+                        catch
+                        {
+                            Logger?.LogWarning("Binding of routing-key {key} to queue {name} has failed.", routingKey, RabbitConfiguration.QueueName);
+                        }
                     }
 
                     if (RabbitConfiguration.ManagementBaseUri is not null)
                     {
                         try
                         {
-                            await RemoveUnexpectedQueueBindingsAsync();
+                            await RemoveUnexpectedQueueBindingsAsync(cancellationToken);
                         }
                         catch (Exception ex)
                         {
@@ -204,7 +231,7 @@ namespace RabbitHutch.Consumers
                     }
 
                     retryCount++;
-                    await Task.Delay(LifecycleProfile.ReconnectDelay);
+                    await Task.Delay(LifecycleProfile.ReconnectDelay, cancellationToken);
                 }
             }
 
@@ -215,14 +242,18 @@ namespace RabbitHutch.Consumers
         /// Removes any unexpected queue bindings from the queue.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> RemoveUnexpectedQueueBindingsAsync()
+        public async Task<bool> RemoveUnexpectedQueueBindingsAsync(CancellationToken cancellationToken)
         {
             if (RabbitConfiguration.ManagementBaseUri is null)
             {
                 return false;
             }
 
-            using HttpClient apiClient = new(new HttpClientHandler { Credentials = new NetworkCredential(RabbitConfiguration.ManagementUser, RabbitConfiguration.ManagementPassword) });
+            using HttpClient apiClient = new(new HttpClientHandler
+            {
+                Credentials = new NetworkCredential(RabbitConfiguration.ManagementUser,
+                RabbitConfiguration.ManagementPassword)
+            });
 
             string baseUrl = $"{RabbitConfiguration.ManagementBaseUri}{(RabbitConfiguration.ManagementBaseUri.ToString().EndsWith('/') ? "" : '/')}";
             string url = $"{baseUrl}queues/{Uri.EscapeDataString(RabbitConfiguration.ManagementVirtualHost)}/{Uri.EscapeDataString(RabbitConfiguration.QueueName ?? string.Empty)}/bindings";
@@ -235,8 +266,8 @@ namespace RabbitHutch.Consumers
                 {
                     Logger?.LogInformation("Listing Bindings for Queue: {queueName}", RabbitConfiguration.QueueName);
 
-                    HttpResponseMessage response = await apiClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
-                    string responseString = await response.Content.ReadAsStringAsync();
+                    HttpResponseMessage response = await apiClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+                    string responseString = await response.Content.ReadAsStringAsync(cancellationToken);
 
                     currentBindings = JsonSerializer.Deserialize<List<Binding>>(responseString);
 
@@ -245,7 +276,7 @@ namespace RabbitHutch.Consumers
                 catch (Exception ex)
                 {
                     Logger?.LogError("Error GETting QueueBindings via Management API: {url}{Environment.NewLine}{ex}", url, Environment.NewLine, ex);
-                    await Task.Delay(500);
+                    await Task.Delay(500, cancellationToken);
                 }
             }
 
@@ -266,13 +297,13 @@ namespace RabbitHutch.Consumers
                         string removeUrl = $"{baseUrl}bindings/{Uri.EscapeDataString(RabbitConfiguration.ManagementVirtualHost)}/e/{Uri.EscapeDataString(bindingToRemove.Source ?? string.Empty)}/q/{bindingToRemove.Destination}/{bindingToRemove.PropertiesKey}";
                         try
                         {
-                            HttpResponseMessage response = await apiClient.DeleteAsync(removeUrl);
+                            HttpResponseMessage response = await apiClient.DeleteAsync(removeUrl, cancellationToken);
                             success = response.IsSuccessStatusCode;
                         }
                         catch (Exception exDelete)
                         {
                             Logger?.LogError("Error DELETEing QueueBindings via Management API: {removeUrl}{Environment.NewLine}{exDelete}", removeUrl, Environment.NewLine, exDelete);
-                            await Task.Delay(500);
+                            await Task.Delay(500, cancellationToken);
                         }
                     }
                 }

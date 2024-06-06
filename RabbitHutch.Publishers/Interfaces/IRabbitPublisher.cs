@@ -38,6 +38,19 @@ namespace RabbitHutch.Publishers.Interfaces
         bool IsActive { get; }
 
         /// <summary>
+        /// Initializes the RabbitMQ connection.
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> InitializeRabbitAsync();
+
+        /// <summary>
+        /// Initializes the RabbitMQ connection.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<bool> InitializeRabbitAsync(CancellationToken cancellationToken);
+
+        /// <summary>
         /// Publishes a message to the RabbitMQ exchange.
         /// </summary>
         /// <param name="message"></param>

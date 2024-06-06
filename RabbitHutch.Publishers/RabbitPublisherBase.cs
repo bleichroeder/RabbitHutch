@@ -45,6 +45,11 @@ namespace RabbitHutch.Publishers
         public string? Name { get; set; }
 
         /// <summary>
+        /// Gets or sets the cancellation token.
+        /// </summary>
+        public CancellationToken CancellationToken { get; set; }
+
+        /// <summary>
         /// Gets or sets the RabbitConfiguration.
         /// </summary>
         public required IRabbitPublisherSettings RabbitConfiguration { get; set; }
@@ -73,21 +78,19 @@ namespace RabbitHutch.Publishers
         /// Initializes the RabbitMQ connection using the configured <see cref="IConnectionLifecycleProfile"/>.
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> InitializeRabbitAsync()
+        public async Task<bool> InitializeRabbitAsync() => await InitializeRabbitAsync(CancellationToken);
+
+        /// <summary>
+        /// Initializes the RabbitMQ connection using the configured <see cref="IConnectionLifecycleProfile"/>.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> InitializeRabbitAsync(CancellationToken cancellationToken)
         {
-            int retryCount = 0;
+            int retryCount = -1;
             while (IsActive is false && retryCount <= LifecycleProfile.MaxRetries)
             {
                 try
                 {
-                    // Make sure we have a connection string.
-                    if (RabbitConfiguration.ConnectionString is null)
-                        throw new ArgumentNullException(nameof(RabbitConfiguration.ConnectionString));
-
-                    // Make sure we have an exchange name.
-                    if (RabbitConfiguration.ExchangeName is null)
-                        throw new ArgumentNullException(nameof(RabbitConfiguration.ExchangeName));
-
                     ConnectionFactory factory = new()
                     {
                         Uri = RabbitConfiguration.ConnectionString,
@@ -101,7 +104,7 @@ namespace RabbitHutch.Publishers
                         ClientProvidedName = $"{AppDomain.CurrentDomain.FriendlyName} on {Environment.MachineName}"
                     };
 
-                    Logger?.LogDebug("About to create connection with {RabbitConfiguration.ConnectionString.Host}.", RabbitConfiguration.ConnectionString.Host);
+                    Logger?.LogDebug("About to create connection with {RabbitConfiguration.ConnectionString.Host}.", RabbitConfiguration.ConnectionString?.Host);
 
                     _connection = factory.CreateConnection();
                     _channel = _connection.CreateModel();
@@ -128,7 +131,7 @@ namespace RabbitHutch.Publishers
                     }
 
                     retryCount++;
-                    await Task.Delay(LifecycleProfile.ReconnectDelay);
+                    await Task.Delay(LifecycleProfile.ReconnectDelay, cancellationToken);
                 }
             }
 

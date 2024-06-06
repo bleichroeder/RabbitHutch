@@ -17,7 +17,7 @@ namespace RabbitHutch.Publishers
         /// <param name="rabbitConfiguration"></param>
         [SetsRequiredMembers]
         public RabbitPublisher(IRabbitPublisherSettings rabbitConfiguration,
-                               ILogger<IRabbitPublisher<T>>? logger)
+                               ILogger? logger)
             : this(rabbitConfiguration,
                    ConnectionLifecycleProfiles.DefaultConnectionLifecycleProfile(),
                    MessageSerializers.DefaultMessageSerializer<T>(),

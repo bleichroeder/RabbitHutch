@@ -14,6 +14,11 @@ namespace RabbitHutch.Publishers
         public string? ExchangeName { get; set; }
 
         /// <summary>
+        /// Gets or sets the value indicating whether to declare exchange.
+        /// </summary>
+        public bool DeclareExchange { get; set; }
+
+        /// <summary>
         /// Gets or sets the ConnectionString.
         /// </summary>
         public Uri? ConnectionString { get; set; }
@@ -42,29 +47,125 @@ namespace RabbitHutch.Publishers
         public bool AutomaticRecovery { get; set; } = true;
 
         /// <summary>
-        /// Default constructor.
+        /// Creates <see cref="RabbitPublisherSettings"/>.
         /// </summary>
         public RabbitPublisherSettings() { }
 
         /// <summary>
-        /// Creates <see cref="IRabbitPublisher{T}"/> settings.
+        /// Creates <see cref="RabbitPublisherSettings"/>.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        public RabbitPublisherSettings(string connectionString, string exchangeName)
+            : this(new Uri(connectionString), exchangeName, null, null, false)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitPublisherSettings"/>.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        public RabbitPublisherSettings(Uri connectionString, string exchangeName)
+            : this(connectionString, exchangeName, null, null, false)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitPublisherSettings"/>.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        public RabbitPublisherSettings(string connectionString,
+                                       string exchangeName,
+                                       string contentType)
+            : this(new Uri(connectionString), exchangeName, null, contentType, false)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitPublisherSettings"/>.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        public RabbitPublisherSettings(Uri connectionString,
+                                       string exchangeName,
+                                       string contentType)
+            : this(connectionString, exchangeName, null, contentType, false)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitPublisherSettings"/>.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        public RabbitPublisherSettings(string connectionString,
+                                       string exchangeName,
+                                       string keysPath,
+                                       string contentType)
+            : this(new Uri(connectionString), exchangeName, keysPath, contentType, false)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitPublisherSettings"/>.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        public RabbitPublisherSettings(Uri connectionString,
+                                       string exchangeName,
+                                       string keysPath,
+                                       string contentType)
+            : this(connectionString, exchangeName, keysPath, contentType, false)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitPublisherSettings"/>.
+        /// </summary>
+        /// <param name="connectionString"></param>
+        /// <param name="exchangeName"></param>
+        /// <param name="keysPath"></param>
+        /// <param name="contentType"></param>
+        /// <param name="enableAcks"></param>
+        public RabbitPublisherSettings(string connectionString,
+                                       string exchangeName,
+                                       string keysPath,
+                                       string contentType,
+                                       bool enableAcks)
+            : this(new Uri(connectionString), exchangeName, keysPath, contentType, enableAcks)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitPublisherSettings"/> settings.
         /// </summary>
         /// <param name="exchangeName"></param>
         /// <param name="connectionString"></param>
         /// <param name="keysPath"></param>
         /// <param name="enableAcks"></param>
         /// <param name="contentType"></param>
-        public RabbitPublisherSettings(string? exchangeName,
-                                       Uri? connectionString,
+        public RabbitPublisherSettings(string connectionString,
+                                       string exchangeName,
                                        string? keysPath,
-                                       bool enableAcks,
-                                       string contentType)
+                                       string? contentType,
+                                       bool? enableAcks)
+            : this(new Uri(connectionString), exchangeName, keysPath, contentType, enableAcks)
+        { }
+
+        /// <summary>
+        /// Creates <see cref="RabbitPublisherSettings"/> settings.
+        /// </summary>
+        /// <param name="exchangeName"></param>
+        /// <param name="connectionString"></param>
+        /// <param name="keysPath"></param>
+        /// <param name="enableAcks"></param>
+        /// <param name="contentType"></param>
+        public RabbitPublisherSettings(Uri connectionString,
+                                       string exchangeName,
+                                       string? keysPath,
+                                       string? contentType,
+                                       bool? enableAcks)
         {
             ExchangeName = exchangeName;
             ConnectionString = connectionString;
             KeysPath = keysPath;
-            EnableAcks = enableAcks;
-            ContentType = contentType;
+            EnableAcks = enableAcks ?? false;
+            ContentType = contentType ?? MediaTypeNames.Application.Json;
         }
     }
 }

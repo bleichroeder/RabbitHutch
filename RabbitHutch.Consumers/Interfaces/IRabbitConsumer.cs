@@ -32,5 +32,18 @@ namespace RabbitHutch.Consumers.Interfaces
         /// True if the underlying connection is active.
         /// </summary>
         bool IsActive { get; }
+
+        /// <summary>
+        /// Initializes the RabbitMQ connection.
+        /// </summary>
+        /// <returns></returns>
+        Task<bool> InitializeRabbitAsync();
+
+        /// <summary>
+        /// Initializes the RabbitMQ connection.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        Task<bool> InitializeRabbitAsync(CancellationToken cancellationToken);
     }
 }

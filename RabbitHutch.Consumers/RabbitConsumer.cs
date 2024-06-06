@@ -7,7 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace RabbitHutch.Consumers
 {
-    public class BasicRabbitConsumer<T> : RabbitConsumerBase<T>
+    public class RabbitConsumer<T> : RabbitConsumerBase<T>
     {
         protected bool _stop;
         protected bool _isRunning;
@@ -18,14 +18,52 @@ namespace RabbitHutch.Consumers
         /// <summary>
         /// Initializes a new instance of the <see cref="BasicRabbitConsumer{T}"/>
         /// </summary>
+        /// <param name="rabbitConfiguration"></param>
+        /// <param name="logger"></param>
+        [SetsRequiredMembers]
+        public RabbitConsumer(IRabbitConsumerSettings rabbitConfiguration, ILogger? logger)
+            : this(rabbitConfiguration, MessageReceivedDelegates.DefaultNewMessageCallback<T>(), logger)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BasicRabbitConsumer{T}"/>
+        /// </summary>
+        /// <param name="rabbitConfiguration"></param>
+        /// <param name="asyncNewMessageCallback"></param>
+        /// <param name="logger"></param>
+        [SetsRequiredMembers]
+        public RabbitConsumer(IRabbitConsumerSettings rabbitConfiguration,
+                              AsyncNewMessageCallbackDelegate<T> asyncNewMessageCallback,
+                              ILogger? logger)
+            : this(rabbitConfiguration, asyncNewMessageCallback, MessageDeserializers.DefaultMessageDeserializerFromBytes<T>(), logger)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BasicRabbitConsumer{T}"/>
+        /// </summary>
+        /// <param name="rabbitConfiguration"></param>
+        /// <param name="asyncNewMessageCallback"></param>
+        /// <param name="deserializer"></param>
+        /// <param name="logger"></param>
+        [SetsRequiredMembers]
+        public RabbitConsumer(IRabbitConsumerSettings rabbitConfiguration,
+                              AsyncNewMessageCallbackDelegate<T> asyncNewMessageCallback,
+                              MessageDeserializerFromBytesDelegate<T> deserializer,
+                              ILogger? logger)
+            : this(rabbitConfiguration, ConnectionLifecycleProfiles.DefaultConnectionLifecycleProfile(), deserializer, asyncNewMessageCallback, logger)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BasicRabbitConsumer{T}"/>
+        /// </summary>
         /// <param name="connectionString">The host.</param>
         /// <param name="exchangeName">Name of the exchange.</param>
         [SetsRequiredMembers]
-        public BasicRabbitConsumer(IRabbitConsumerSettings rabbitConfiguration,
-                                   IConnectionLifecycleProfile lifecycleProfile,
-                                   MessageDeserializerFromBytesDelegate<T> deserializer,
-                                   AsyncNewMessageCallbackDelegate<T> asyncNewMessageCallback,
-                                   ILogger? logger)
+        public RabbitConsumer(IRabbitConsumerSettings rabbitConfiguration,
+                              IConnectionLifecycleProfile lifecycleProfile,
+                              MessageDeserializerFromBytesDelegate<T> deserializer,
+                              AsyncNewMessageCallbackDelegate<T> asyncNewMessageCallback,
+                              ILogger? logger)
         {
             LifecycleProfile = lifecycleProfile;
             Deserializer = deserializer ?? MessageDeserializers.DefaultMessageDeserializerFromBytes<T>();
@@ -71,12 +109,12 @@ namespace RabbitHutch.Consumers
 
                     _stopNow = true;
 
-                    await Task.Delay(1000);
+                    await Task.Delay(1000, CancellationToken);
 
                     break;
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(100, CancellationToken);
             }
         }
 

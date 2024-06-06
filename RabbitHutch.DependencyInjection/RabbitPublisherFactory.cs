@@ -62,9 +62,11 @@ namespace RabbitHutch.DependencyInjection
     /// <summary>
     /// The <see cref="RabbitPublisherFactory"/>.
     /// </summary>
-    public class RabbitPublisherFactory(ILoggerFactory loggerFactory, ILogger<RabbitPublisherFactory> publisherLogger) : IRabbitPublisherFactory
+    public class RabbitPublisherFactory(ILoggerFactory loggerFactory, ILogger<RabbitPublisherFactory> publisherLogger, CancellationTokenSource? cancellationTokenSource) : IRabbitPublisherFactory
     {
         private static readonly Dictionary<string, object> _instances = [];
+
+        private readonly CancellationToken _cancellationToken = cancellationTokenSource?.Token ?? CancellationToken.None;
 
         /// <summary>
         /// Gets a <see cref="IRabbitPublisher{T}"/> by <see cref="type"/> key <see cref="{T}"/>.
@@ -161,7 +163,8 @@ namespace RabbitHutch.DependencyInjection
                 logger ??= loggerFactory.CreateLogger<QueueingRabbitPublisher<T>>();
                 DummyRabbitPublisher<T> publisher = new(publisherSettings, lifecycleProfile, serializer, routingKeyGenerator, logger)
                 {
-                    Name = name
+                    Name = name,
+                    CancellationToken = _cancellationToken
                 };
                 value = publisher;
                 _instances.Add(name, publisher);
@@ -248,7 +251,8 @@ namespace RabbitHutch.DependencyInjection
                 logger ??= loggerFactory.CreateLogger<QueueingRabbitPublisher<T>>();
                 QueueingRabbitPublisher<T> publisher = new(publisherSettings, lifecycleProfile, serializer, routingKeyGenerator, logger)
                 {
-                    Name = name
+                    Name = name,
+                    CancellationToken = _cancellationToken
                 };
                 publisher.Start();
                 value = publisher;
@@ -336,7 +340,8 @@ namespace RabbitHutch.DependencyInjection
                 logger ??= loggerFactory.CreateLogger<QueueingRabbitPublisher<T>>();
                 RabbitPublisher<T> publisher = new(settings, lifecycleProfile, serializer, routingKeyGenerator, logger)
                 {
-                    Name = name
+                    Name = name,
+                    CancellationToken = _cancellationToken
                 };
                 value = publisher;
                 _instances.Add(name, value);
