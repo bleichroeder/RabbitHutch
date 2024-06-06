@@ -18,6 +18,44 @@ namespace RabbitHutch.Consumers
         /// <summary>
         /// Initializes a new instance of the <see cref="BasicRabbitConsumer{T}"/>
         /// </summary>
+        /// <param name="rabbitConfiguration"></param>
+        /// <param name="logger"></param>
+        [SetsRequiredMembers]
+        public DummyRabbitConsumer(IRabbitConsumerSettings rabbitConfiguration, ILogger? logger)
+            : this(rabbitConfiguration, MessageReceivedDelegates.DefaultNewMessageCallback<T>(), logger)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BasicRabbitConsumer{T}"/>
+        /// </summary>
+        /// <param name="rabbitConfiguration"></param>
+        /// <param name="asyncNewMessageCallback"></param>
+        /// <param name="logger"></param>
+        [SetsRequiredMembers]
+        public DummyRabbitConsumer(IRabbitConsumerSettings rabbitConfiguration,
+                                   AsyncNewMessageCallbackDelegate<T> asyncNewMessageCallback,
+                                   ILogger? logger)
+            : this(rabbitConfiguration, asyncNewMessageCallback, MessageDeserializers.DefaultMessageDeserializerFromBytes<T>(), logger)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BasicRabbitConsumer{T}"/>
+        /// </summary>
+        /// <param name="rabbitConfiguration"></param>
+        /// <param name="asyncNewMessageCallback"></param>
+        /// <param name="deserializer"></param>
+        /// <param name="logger"></param>
+        [SetsRequiredMembers]
+        public DummyRabbitConsumer(IRabbitConsumerSettings rabbitConfiguration,
+                                   AsyncNewMessageCallbackDelegate<T> asyncNewMessageCallback,
+                                   MessageDeserializerFromBytesDelegate<T> deserializer,
+                                   ILogger? logger)
+            : this(rabbitConfiguration, ConnectionLifecycleProfiles.DefaultConnectionLifecycleProfile(), deserializer, asyncNewMessageCallback, logger)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BasicRabbitConsumer{T}"/>
+        /// </summary>
         /// <param name="connectionString">The host.</param>
         /// <param name="exchangeName">Name of the exchange.</param>
         [SetsRequiredMembers]
@@ -40,7 +78,7 @@ namespace RabbitHutch.Consumers
         }
 
         /// <summary>
-        /// Starts the <see cref="QueueingRabbitPublisher{T}"/>
+        /// Starts the <see cref="DummyRabbitConsumer{T}"/>
         /// </summary>
         public void Start()
         {
@@ -53,7 +91,7 @@ namespace RabbitHutch.Consumers
         }
 
         /// <summary>
-        /// Stops the <see cref="QueueingRabbitPublisher{T}"/>
+        /// Stops the <see cref="DummyRabbitConsumer{T}"/>
         /// </summary>
         public async Task ShutdownAsync()
         {

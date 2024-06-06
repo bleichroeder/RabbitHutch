@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHutch.Core", "RabbitH
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHutch.Demo", "RabbitHutch.Demo\RabbitHutch.Demo.csproj", "{7CCB9E52-B4A4-45EC-8371-47BEDF99CFAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHutch.Consumers", "RabbitHutch.Consumers\RabbitHutch.Consumers.csproj", "{127788E9-0724-4933-BA35-04A0C1BEB0B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RabbitHutch.Consumers", "RabbitHutch.Consumers\RabbitHutch.Consumers.csproj", "{127788E9-0724-4933-BA35-04A0C1BEB0B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RabbitHutch.Tests", "RabbitHutch.Tests\RabbitHutch.Tests.csproj", "{5E3E5248-8BE4-449B-B947-2EC642E63D53}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{127788E9-0724-4933-BA35-04A0C1BEB0B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{127788E9-0724-4933-BA35-04A0C1BEB0B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{127788E9-0724-4933-BA35-04A0C1BEB0B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E3E5248-8BE4-449B-B947-2EC642E63D53}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E3E5248-8BE4-449B-B947-2EC642E63D53}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E3E5248-8BE4-449B-B947-2EC642E63D53}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E3E5248-8BE4-449B-B947-2EC642E63D53}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
