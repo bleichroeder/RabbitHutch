@@ -15,6 +15,17 @@ RabbitPublisher<T> is a standard RabbitMQ publisher. It connects directly to a R
 ### ```QueueingRabbitPublisher<T>```
 QueueingRabbitPublisher<T> adds a layer of reliability by providing an internal message queue. This queue acts as a buffer in case of RabbitMQ outages, ensuring that messages are not lost and can be published once the connection is restored. This publisher is ideal for scenarios where message delivery guarantees are critical.
 
+### ```DummyRabbitPublisher<T>```
+DummyRabbitConsumer<T> is designed for demonstration and testing purposes. It does not create an actual connection with RabbitMQ, making it useful for testing application logic without requiring a live RabbitMQ instance. This consumer simulates message publication and is helpful in development environments.
+
+## Consumer Types
+
+### ```RabbitConsumer<T>```
+RabbitConsumer<T> is a standard RabbitMQ publisher. It connects directly to a RabbitMQ exchange and consumes messages of type T from it.
+
+### ```SingleFetchRabbitConsumer<T>```
+SingleFetchRabbitConsumer<T> is a variant of RabbitMQ publisher which allows only for BasicGet. It connects directly to a RabbitMQ exchange and consumes messages of type T one message at a time, only when requested.
+
 ### ```DummyRabbitConsumer<T>```
 DummyRabbitConsumer<T> is designed for demonstration and testing purposes. It does not create an actual connection with RabbitMQ, making it useful for testing application logic without requiring a live RabbitMQ instance. This consumer simulates message consumption and is helpful in development environments.
 
@@ -41,10 +52,17 @@ builder.Services.BuildRabbitHutch(hutchBuilder =>
         publisherConfigurator.WithRoutingKeyFormatter(forecast => nameof(forecast));
         publisherConfigurator.WithSerializer(forecast => forecast.Serialize());
         publisherConfigurator.WithName("MyCustomDummyPublisher");
+        publisherConfigurator.WithExchangeDeclarationSettings(new ExchangeDeclarationSettings()
+        {
+            Durable = true,
+            AutoDelete = false,
+            ExchangeType = RabbitMQ.Client.ExchangeType.Topic
+        });
         publisherConfigurator.RegisterAsHostedService();
     });
 });
 ```
+
 #### Using a Publisher
 The ```IRabbitPublisherFactory``` is injected and used to access any of your registered publishers by name/type.
 ```
@@ -90,13 +108,25 @@ builder.Services.BuildRabbitHutch(hutchBuilder =>
         consumerConfigurator.WithDeserializer(bytes => WeatherForecast.Deserialize(bytes));
         consumerConfigurator.WithNewMessageDelegate(LogIfFreezing);
         consumerConfigurator.WithName("MyCustomDummyConsumer");
+        consumerConfigurator.WithExchangeDeclarationSettings(new ExchangeDeclarationSettings()
+        {
+            Durable = true,
+            AutoDelete = false,
+            ExchangeType = RabbitMQ.Client.ExchangeType.Topic
+        });
+        consumerConfigurator.WithQueueDeclarationSettings(new QueueDeclarationSettings()
+        {
+            Durable = true,
+            AutoDelete = false,
+            QueueType = "classic"
+        });
         consumerConfigurator.RegisterAsHostedService();
     });
 });
 
 ```
 #### Using a Consumer
-Basic consumers will run asynchronously for the life of the service, but can be accessed via DI using the ```IRabbitConsumerFactory``` for manual interaction.
+Basic consumers will run asynchronously for the life of the service, but can be accessed via DI using the ```IRabbitConsumerFactory``` for manual interaction, this is required when using ```SingleFetchRabbitConsumer<T>```.
 
 ### Manual Creation of Publishers and Consumers
 If you prefer not to use dependency injection, you can manually create ```IRabbitPublisher``` and ```IRabbitConsumer``` instances.
@@ -123,6 +153,43 @@ async (testClass) =>
 }, Logger);
 
 consumer.Start();
+```
+
+### ```IQueueDeclarationSettings``` & ```IExchangeDeclarationSettings```
+All consumer and publisher types support the ability to declare their exchanges, while only consumers can declare both their exchange and queue.
+These settings are configured using ```IQueueDeclarationSettings``` and ```IExchangeDeclarationSettings``` within the respective rabbit settings classes.
+If these settings are not specified no declarations are performed.
+
+#### Consumer Exchange and Queue Declaration Configuration
+```
+RabbitConsumerSettings consumerSettings = new(CONNECTION_STRING, EXCHANGE_NAME, QUEUE_NAME)
+{
+    ManagementBaseUri = new Uri(MANAGEMENT_BASE_URI),
+    QueueDeclarationSettings = new QueueDeclarationSettings()
+    {
+        Passive = false,
+        Durable = true,
+        AutoDelete = false
+    },
+    ExchangeDeclarationSettings = new ExchangeDeclarationSettings()
+    {
+        ExchangeType = RabbitMQ.Client.ExchangeType.Topic,
+        Passive = false
+    }
+};
+```
+#### Publisher Exchange Declaration Configuration
+```
+RabbitPublisherSettings publisherSettings = new(CONNECTION_STRING, EXCHANGE_NAME)
+{
+    ExchangeDeclarationSettings = new ExchangeDeclarationSettings()
+    {
+        ExchangeType = RabbitMQ.Client.ExchangeType.Topic,
+        Passive = true,
+        Durable = true,
+        AutoDelete = false
+    }
+};
 ```
 
 ## License
