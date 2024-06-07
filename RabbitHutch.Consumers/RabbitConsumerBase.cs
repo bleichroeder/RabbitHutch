@@ -161,35 +161,11 @@ namespace RabbitHutch.Consumers
 
                     _model.BasicQos(0, RabbitConfiguration.PrefetchCount, false);
 
-                    try
-                    {
-                        _model.ExchangeDeclarePassive(RabbitConfiguration.ExchangeName);
-                    }
-                    catch
-                    {
-                        Logger?.LogWarning("Declaration of exchange {name} has failed.", RabbitConfiguration.ExchangeName);
-                    }
+                    if (RabbitConfiguration.DeclareExchange) DeclareExchange();
 
-                    try
-                    {
-                        _model.QueueDeclare(RabbitConfiguration.QueueName, true, false, false, null);
-                    }
-                    catch
-                    {
-                        Logger?.LogWarning("Declaration of queue {name} has failed.", RabbitConfiguration.QueueName);
-                    }
+                    if (RabbitConfiguration.DeclareQueue) DeclareQueue();
 
-                    foreach (string routingKey in RabbitConfiguration.RoutingKeys)
-                    {
-                        try
-                        {
-                            _model.QueueBind(RabbitConfiguration.QueueName, RabbitConfiguration.ExchangeName, routingKey, null);
-                        }
-                        catch
-                        {
-                            Logger?.LogWarning("Binding of routing-key {key} to queue {name} has failed.", routingKey, RabbitConfiguration.QueueName);
-                        }
-                    }
+                    ConfigureBindings();
 
                     if (RabbitConfiguration.ManagementBaseUri is not null)
                     {
@@ -311,6 +287,87 @@ namespace RabbitHutch.Consumers
 
             return success;
         }
+
+        /// <summary>
+        /// Attempts to delcare the configured exchange.
+        /// </summary>
+        public void DeclareExchange()
+        {
+            if (RabbitConfiguration.ExchangeDeclarationSettings!.Passive)
+            {
+                try
+                {
+                    _model?.ExchangeDeclarePassive(RabbitConfiguration.ExchangeName);
+                }
+                catch
+                {
+                    Logger?.LogWarning("Passive declaration of exchange {name} has failed.", RabbitConfiguration.ExchangeName);
+                }
+            }
+            else
+            {
+                try
+                {
+                    _model?.ExchangeDeclare(RabbitConfiguration.ExchangeName,
+                                            RabbitConfiguration.ExchangeDeclarationSettings.ExchangeType.ToString(),
+                                            RabbitConfiguration.ExchangeDeclarationSettings.Durable,
+                                            RabbitConfiguration.ExchangeDeclarationSettings.AutoDelete,
+                                            RabbitConfiguration.ExchangeDeclarationSettings.Arguments);
+                }
+                catch
+                {
+                    Logger?.LogWarning("Declaration of exchange {name} has failed.", RabbitConfiguration.ExchangeName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to declare the configured queue.
+        /// </summary>
+        public void DeclareQueue()
+        {
+            if (RabbitConfiguration.QueueDeclarationSettings!.Passive)
+            {
+                try
+                {
+                    _model?.QueueDeclarePassive(RabbitConfiguration.QueueName);
+                }
+                catch
+                {
+                    Logger?.LogWarning("Passive declaration of queue {name} has failed.", RabbitConfiguration.QueueName);
+                }
+            }
+            else
+            {
+                try
+                {
+                    _model?.QueueDeclare(RabbitConfiguration.QueueName,
+                                         RabbitConfiguration.QueueDeclarationSettings.Durable,
+                                         RabbitConfiguration.QueueDeclarationSettings.Exclusive,
+                                         RabbitConfiguration.QueueDeclarationSettings.AutoDelete,
+                                         RabbitConfiguration.QueueDeclarationSettings.Arguments);
+                }
+                catch
+                {
+                    Logger?.LogWarning("Declaration of queue {name} has failed.", RabbitConfiguration.QueueName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Attempts to bind the queue to the specified routing keys.
+        /// </summary>
+        public void ConfigureBindings() => RabbitConfiguration.RoutingKeys.ToList().ForEach(key =>
+        {
+            try
+            {
+                _model?.QueueBind(RabbitConfiguration.QueueName, RabbitConfiguration.ExchangeName, key, null);
+            }
+            catch
+            {
+                Logger?.LogWarning("Binding of routing-key {key} to queue {name} has failed.", key, RabbitConfiguration.QueueName);
+            }
+        });
 
         /// <summary>
         /// Hosted service StartAsync().

@@ -9,7 +9,7 @@ namespace RabbitHutch.Publishers
 {
     public abstract class RabbitPublisherBase<T> : IRabbitPublisher<T>
     {
-        protected IModel? _channel;
+        protected IModel? _model;
         protected IConnection? _connection;
         protected bool _publishSuccess;
         protected bool _isDisposed;
@@ -107,15 +107,17 @@ namespace RabbitHutch.Publishers
                     Logger?.LogDebug("About to create connection with {RabbitConfiguration.ConnectionString.Host}.", RabbitConfiguration.ConnectionString?.Host);
 
                     _connection = factory.CreateConnection();
-                    _channel = _connection.CreateModel();
+                    _model = _connection.CreateModel();
 
                     if (RabbitConfiguration.EnableAcks)
                     {
                         Logger?.LogTrace($"Acks are enabled.");
 
-                        _channel.BasicAcks += (sender, eventArgs) => { _publishSuccess = true; };
-                        _channel.ConfirmSelect();
+                        _model.BasicAcks += (sender, eventArgs) => { _publishSuccess = true; };
+                        _model.ConfirmSelect();
                     }
+
+                    if (RabbitConfiguration.DeclareExchange) DeclareExchange();
                 }
                 catch (Exception ex)
                 {
@@ -138,6 +140,39 @@ namespace RabbitHutch.Publishers
             return IsActive;
         }
 
+        /// <summary>
+        /// Attempts to delcare the configured exchange.
+        /// </summary>
+        public void DeclareExchange()
+        {
+            if (RabbitConfiguration.ExchangeDeclarationSettings!.Passive)
+            {
+                try
+                {
+                    _model?.ExchangeDeclarePassive(RabbitConfiguration.ExchangeName);
+                }
+                catch
+                {
+                    Logger?.LogWarning("Passive declaration of exchange {name} has failed.", RabbitConfiguration.ExchangeName);
+                }
+            }
+            else
+            {
+                try
+                {
+                    _model?.ExchangeDeclare(RabbitConfiguration.ExchangeName,
+                                            RabbitConfiguration.ExchangeDeclarationSettings.ExchangeType.ToString().ToLower(),
+                                            RabbitConfiguration.ExchangeDeclarationSettings.Durable,
+                                            RabbitConfiguration.ExchangeDeclarationSettings.AutoDelete,
+                                            RabbitConfiguration.ExchangeDeclarationSettings.Arguments);
+                }
+                catch
+                {
+                    Logger?.LogWarning("Declaration of exchange {name} has failed.", RabbitConfiguration.ExchangeName);
+                }
+            }
+        }
+
         public abstract Task StartAsync(CancellationToken cancellationToken);
         public abstract Task StopAsync(CancellationToken cancellationToken);
 
@@ -146,7 +181,6 @@ namespace RabbitHutch.Publishers
 
         public abstract Task<bool> PublishAsync(T message, Dictionary<string, object>? headers = null);
         public abstract Task<bool> PublishAsync(T item, string routingKey, string contentType, Dictionary<string, object>? headers = null);
-
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
@@ -170,7 +204,7 @@ namespace RabbitHutch.Publishers
             if (disposing is false || _isDisposed)
                 return;
 
-            _channel?.Dispose();
+            _model?.Dispose();
             _connection?.Dispose();
         }
     }

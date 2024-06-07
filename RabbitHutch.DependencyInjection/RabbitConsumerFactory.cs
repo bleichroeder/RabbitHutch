@@ -50,6 +50,9 @@ namespace RabbitHutch.DependencyInjection
 
         IRabbitConsumer<T> CreateConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, ILogger? logger = null, string? name = null);
         IRabbitConsumer<T> CreateConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, MessageDeserializerFromBytesDelegate<T> deserializer, ILogger? logger = null, string? name = null);
+
+        IRabbitConsumer<T> CreateSingleFetchConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, ILogger? logger = null, string? name = null);
+        IRabbitConsumer<T> CreateSingleFetchConsumer<T>(IRabbitConsumerSettings settings, IConnectionLifecycleProfile lifecycleProfile, AsyncNewMessageCallbackDelegate<T> newMessageCallback, MessageDeserializerFromBytesDelegate<T> deserializer, ILogger? logger = null, string? name = null);
     }
 
     /// <summary>
@@ -180,6 +183,62 @@ namespace RabbitHutch.DependencyInjection
                 _instances.Add(name, value);
 
                 publisherLogger.LogDebug("Created {consumerType} with name {name}", typeof(RabbitConsumer<T>).Name, name);
+            }
+            return (IRabbitConsumer<T>)value;
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="SingleFetchRabbitConsumer{T}"/>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="settings"></param>
+        /// <param name="lifecycleProfile"></param>
+        /// <param name="newMessageCallback"></param>
+        /// <param name="logger"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public IRabbitConsumer<T> CreateSingleFetchConsumer<T>(IRabbitConsumerSettings settings,
+                                                               IConnectionLifecycleProfile lifecycleProfile,
+                                                               AsyncNewMessageCallbackDelegate<T> newMessageCallback,
+                                                               ILogger? logger,
+                                                                string? name)
+            => CreateSingleFetchConsumer(settings,
+                                         lifecycleProfile,
+                                         newMessageCallback,
+                                         MessageDeserializers.DefaultMessageDeserializerFromBytes<T>(),
+                                         logger,
+                                         name);
+
+        /// <summary>
+        /// Creates a new <see cref="SingleFetchRabbitConsumer{T}"/>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="settings"></param>
+        /// <param name="lifecycleProfile"></param>
+        /// <param name="newMessageCallback"></param>
+        /// <param name="deserializer"></param>
+        /// <param name="logger"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public IRabbitConsumer<T> CreateSingleFetchConsumer<T>(IRabbitConsumerSettings settings,
+                                                               IConnectionLifecycleProfile lifecycleProfile,
+                                                               AsyncNewMessageCallbackDelegate<T> newMessageCallback,
+                                                               MessageDeserializerFromBytesDelegate<T> deserializer,
+                                                               ILogger? logger,
+                                                               string? name)
+        {
+            name ??= typeof(T).Name;
+            if (_instances.TryGetValue(name, out object? value) is false)
+            {
+                logger ??= loggerFactory.CreateLogger<SingleFetchRabbitConsumer<T>>();
+                SingleFetchRabbitConsumer<T> consumer = new(settings, lifecycleProfile, deserializer, newMessageCallback, logger)
+                {
+                    Name = name,
+                    CancellationToken = _cancellationToken
+                };
+                value = consumer;
+                _instances.Add(name, value);
+                publisherLogger.LogDebug("Created {consumerType} with name {name}", typeof(SingleFetchRabbitConsumer<T>).Name, name);
             }
             return (IRabbitConsumer<T>)value;
         }

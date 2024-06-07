@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using RabbitHutch.Consumers;
 using RabbitHutch.Consumers.Interfaces;
+using RabbitHutch.Core.Settings;
 using RabbitHutch.Publishers;
 using Xunit.Abstractions;
 
@@ -23,7 +24,7 @@ namespace RabbitHutch.Tests
         /// Create a dummy consumer and consume a message.
         /// </summary>
         [Fact]
-        public async void SimulateMessageConsumption_DummyRabbitPublisher()
+        public async Task SimulateMessageConsumption_DummyRabbitPublisher()
         {
             bool messageConsumed = false;
 
@@ -56,13 +57,41 @@ namespace RabbitHutch.Tests
         /// Publish a message with a <see cref="RabbitPublisher{T}"/> and consume it with a <see cref="SingleFetchRabbitConsumer{T}"/>.
         /// </summary>
         [Fact]
-        public async void PublishAndConsumeSingleMessage_RabbitPublisher_SingleFetchConsumer()
+        public async Task PublishAndConsumeSingleMessage_RabbitPublisher_SingleFetchConsumer()
         {
             string name = "Porter Robinson";
 
-            RabbitPublisherSettings publisherSettings = new(CONNECTION_STRING, EXCHANGE_NAME);
+            // Create a consumer and declare the necessary queue and exchange.
+            RabbitConsumerSettings consumerSettings = new(CONNECTION_STRING, EXCHANGE_NAME, QUEUE_NAME)
+            {
+                ManagementBaseUri = new Uri(MANAGEMENT_BASE_URI),
+                QueueDeclarationSettings = new QueueDeclarationSettings()
+                {
+                    Passive = false,
+                    Durable = true,
+                    AutoDelete = false
+                },
+                ExchangeDeclarationSettings = new ExchangeDeclarationSettings()
+                {
+                    ExchangeType = RabbitMQ.Client.ExchangeType.Topic,
+                    Passive = false
+                }
+            };
+
+            SingleFetchRabbitConsumer<TestClass> consumer = new(consumerSettings, async (testClass) =>
+            {
+                outputHelper.WriteLine("Consumed a single {0}; Name: {1} ID: {2}", nameof(TestClass), testClass.Name, testClass.Id);
+
+                return await Task.FromResult(testClass.Name == name);
+
+            }, Logger);
+
+            // We call initialize manually to trigger the declarations.
+            await consumer.InitializeRabbitAsync();
 
             // Create a publisher and publish a message.
+            RabbitPublisherSettings publisherSettings = new(CONNECTION_STRING, EXCHANGE_NAME);
+
             RabbitPublisher<TestClass> publisher = new(publisherSettings, Logger);
 
             bool messagePublished = await publisher.PublishAsync(new TestClass()
@@ -73,20 +102,7 @@ namespace RabbitHutch.Tests
 
             Assert.True(messagePublished);
 
-            RabbitConsumerSettings consumerSettings = new(CONNECTION_STRING, EXCHANGE_NAME, QUEUE_NAME)
-            {
-                ManagementBaseUri = new Uri(MANAGEMENT_BASE_URI)
-            };
-
-            // Create a single fetch consumer and consume the message.
-            SingleFetchRabbitConsumer<TestClass> consumer = new(consumerSettings, async (testClass) =>
-            {
-                outputHelper.WriteLine("Consumed a single {0}; Name: {1} ID: {2}", nameof(TestClass), testClass.Name, testClass.Id);
-
-                return await Task.FromResult(testClass.Name == name);
-
-            }, Logger);
-
+            // Now fetch the message.
             bool messageConsumed = await consumer.FetchMessageAsync();
 
             Assert.True(messageConsumed);

@@ -2,6 +2,8 @@
 using RabbitHutch.Core.ConnectionLifecycle;
 using RabbitHutch.Core.Routing;
 using RabbitHutch.Core.Serialization;
+using RabbitHutch.Core.Settings.Interfaces;
+using RabbitHutch.DependencyInjection.Interfaces;
 
 namespace RabbitHutch.DependencyInjection
 {
@@ -40,6 +42,11 @@ namespace RabbitHutch.DependencyInjection
         /// Gets or sets a value indicating whether the publisher is registered as a hosted service.
         /// </summary>
         public bool AsHostedService { get; private set; }
+
+        /// <summary>
+        /// Gets the exchange declaration settings.
+        /// </summary>
+        public IExchangeDeclarationSettings? ExchangeDeclarationSettings { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RabbitPublisherBuilderConfigurationContext{T}"/> class.
@@ -104,6 +111,17 @@ namespace RabbitHutch.DependencyInjection
         public RabbitPublisherBuilderConfigurationContext<T> WithLogger(ILogger logger)
         {
             Logger = logger;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the exchange declaration settings.
+        /// </summary>
+        /// <param name="exchangeDeclarationSettings"></param>
+        /// <returns></returns>
+        public RabbitPublisherBuilderConfigurationContext<T> WithExchangeDeclarationSettings(IExchangeDeclarationSettings exchangeDeclarationSettings)
+        {
+            ExchangeDeclarationSettings = exchangeDeclarationSettings;
             return this;
         }
     }

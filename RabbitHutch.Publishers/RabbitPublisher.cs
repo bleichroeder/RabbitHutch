@@ -161,7 +161,7 @@ namespace RabbitHutch.Publishers
 
             try
             {
-                IBasicProperties? properties = _channel?.CreateBasicProperties();
+                IBasicProperties? properties = _model?.CreateBasicProperties();
 
                 if (properties is not null)
                 {
@@ -172,7 +172,7 @@ namespace RabbitHutch.Publishers
                         properties.Headers = headers;
                 }
 
-                _channel.BasicPublish(RabbitConfiguration.ExchangeName,
+                _model.BasicPublish(RabbitConfiguration.ExchangeName,
                                       routingKey,
                                       properties,
                                       messageBytes);
@@ -181,7 +181,7 @@ namespace RabbitHutch.Publishers
                 // Wait for confirms will throw an exception if not ack'd.
                 if (RabbitConfiguration.EnableAcks)
                 {
-                    _channel?.WaitForConfirmsOrDie();
+                    _model?.WaitForConfirmsOrDie();
                 }
 
                 // If we've made it here we published.

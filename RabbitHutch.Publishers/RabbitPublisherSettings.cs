@@ -1,4 +1,5 @@
-﻿using RabbitHutch.Publishers.Interfaces;
+﻿using RabbitHutch.Core.Settings.Interfaces;
+using RabbitHutch.Publishers.Interfaces;
 using System.Net.Mime;
 
 namespace RabbitHutch.Publishers
@@ -14,9 +15,9 @@ namespace RabbitHutch.Publishers
         public string? ExchangeName { get; set; }
 
         /// <summary>
-        /// Gets or sets the value indicating whether to declare exchange.
+        /// True if the exchange should be declared.
         /// </summary>
-        public bool DeclareExchange { get; set; }
+        public bool DeclareExchange => ExchangeDeclarationSettings is not null;
 
         /// <summary>
         /// Gets or sets the ConnectionString.
@@ -45,6 +46,11 @@ namespace RabbitHutch.Publishers
         /// Enabled by default.
         /// </summary>
         public bool AutomaticRecovery { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets the exchange declaration settings.
+        /// </summary>
+        public IExchangeDeclarationSettings? ExchangeDeclarationSettings { get; set; }
 
         /// <summary>
         /// Creates <see cref="RabbitPublisherSettings"/>.

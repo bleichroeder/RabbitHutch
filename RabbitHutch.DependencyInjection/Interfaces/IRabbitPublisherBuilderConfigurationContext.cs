@@ -2,8 +2,9 @@
 using RabbitHutch.Core.ConnectionLifecycle;
 using RabbitHutch.Core.Routing;
 using RabbitHutch.Core.Serialization;
+using RabbitHutch.Core.Settings.Interfaces;
 
-namespace RabbitHutch.DependencyInjection
+namespace RabbitHutch.DependencyInjection.Interfaces
 {
     /// <summary>
     /// Interface for Rabbit publisher builder configuration context.
@@ -35,6 +36,11 @@ namespace RabbitHutch.DependencyInjection
         /// Gets the routing key delegate.
         /// </summary>
         RoutingKeyGeneratorDelegate<T> RoutingKeyDelegate { get; }
+
+        /// <summary>
+        /// Gets the exchange declaration settings.
+        /// </summary>
+        IExchangeDeclarationSettings? ExchangeDeclarationSettings { get; }
 
         /// <summary>
         /// Sets the serializer.
@@ -72,5 +78,12 @@ namespace RabbitHutch.DependencyInjection
         /// <param name="logger"></param>
         /// <returns></returns>
         public RabbitPublisherBuilderConfigurationContext<T> WithLogger(ILogger logger);
+
+        /// <summary>
+        /// Sets the exchange declaration settings.
+        /// </summary>
+        /// <param name="exchangeDeclarationSettings"></param>
+        /// <returns></returns>
+        public RabbitPublisherBuilderConfigurationContext<T> WithExchangeDeclarationSettings(IExchangeDeclarationSettings exchangeDeclarationSettings);
     }
 }

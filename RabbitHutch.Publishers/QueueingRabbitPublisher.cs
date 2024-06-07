@@ -378,7 +378,7 @@ namespace RabbitHutch.Publishers
 
             try
             {
-                IBasicProperties? properties = _channel?.CreateBasicProperties();
+                IBasicProperties? properties = _model?.CreateBasicProperties();
 
                 if (properties is not null)
                 {
@@ -389,14 +389,14 @@ namespace RabbitHutch.Publishers
                         properties.Headers = headers;
                 }
 
-                _channel.BasicPublish(RabbitConfiguration.ExchangeName,
+                _model.BasicPublish(RabbitConfiguration.ExchangeName,
                                       routingKey,
                                       properties,
                                       messageBytes);
 
                 if (RabbitConfiguration.EnableAcks)
                 {
-                    _channel?.WaitForConfirmsOrDie();
+                    _model?.WaitForConfirmsOrDie();
                 }
 
                 _publishSuccess = true;
