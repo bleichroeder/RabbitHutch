@@ -3,7 +3,7 @@
   <img src="https://github.com/bleichroeder/RabbitHutch/blob/main/logo.png?raw=true" width="350" title="hover text">
 </p>
   <p align="center">
-    A powerful C# library designed to simplify the creation and management of RabbitMQ publishers and consumers. RabbitHutch provides an intuitive interface for developers to integrate RabbitMQ messaging into their applications seamlessly.
+    A C# library designed to simplify the creation and management of RabbitMQ publishers and consumers. RabbitHutch provides an intuitive interface for developers to integrate RabbitMQ messaging into their applications seamlessly.
   </p>
 </div>
 
@@ -46,7 +46,7 @@ builder.Services.BuildRabbitHutch(hutchBuilder =>
 });
 ```
 #### Using a Publisher
-The ```IRabbitPublisherFactory``` can then be injected and used to access any of your registered publishers by name/type.
+The ```IRabbitPublisherFactory``` is injected and used to access any of your registered publishers by name/type.
 ```
 [ApiController]
 [Route("[controller]")]
