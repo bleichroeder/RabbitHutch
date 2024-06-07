@@ -16,7 +16,7 @@ RabbitPublisher<T> is a standard RabbitMQ publisher. It connects directly to a R
 QueueingRabbitPublisher<T> adds a layer of reliability by providing an internal message queue. This queue acts as a buffer in case of RabbitMQ outages, ensuring that messages are not lost and can be published once the connection is restored. This publisher is ideal for scenarios where message delivery guarantees are critical.
 
 ### ```DummyRabbitPublisher<T>```
-DummyRabbitConsumer<T> is designed for demonstration and testing purposes. It does not create an actual connection with RabbitMQ, making it useful for testing application logic without requiring a live RabbitMQ instance. This consumer simulates message publication and is helpful in development environments.
+DummyRabbitPublisher<T> is designed for demonstration and testing purposes. It does not create an actual connection with RabbitMQ, making it useful for testing application logic without requiring a live RabbitMQ instance. This consumer simulates message publication and is helpful in development environments.
 
 ## Consumer Types
 
@@ -24,7 +24,7 @@ DummyRabbitConsumer<T> is designed for demonstration and testing purposes. It do
 RabbitConsumer<T> is a standard RabbitMQ publisher. It connects directly to a RabbitMQ exchange and consumes messages of type T from it.
 
 ### ```SingleFetchRabbitConsumer<T>```
-SingleFetchRabbitConsumer<T> is a variant of RabbitMQ publisher which allows only for BasicGet. It connects directly to a RabbitMQ exchange and consumes messages of type T one message at a time, only when requested.
+SingleFetchRabbitConsumer<T> is a variant of RabbitMQ publisher which allows only for BasicGet. It connects directly to a RabbitMQ exchange and publishes messages of type T one message at a time, only when requested.
 
 ### ```DummyRabbitConsumer<T>```
 DummyRabbitConsumer<T> is designed for demonstration and testing purposes. It does not create an actual connection with RabbitMQ, making it useful for testing application logic without requiring a live RabbitMQ instance. This consumer simulates message consumption and is helpful in development environments.
