@@ -21,7 +21,7 @@ DummyRabbitPublisher<T> is designed for demonstration and testing purposes. It d
 ## Consumer Types
 
 ### ```RabbitConsumer<T>```
-RabbitConsumer<T> is a standard RabbitMQ publisher. It connects directly to a RabbitMQ exchange and consumes messages of type T from it.
+RabbitConsumer<T> is a standard RabbitMQ consumer. It connects directly to a RabbitMQ exchange and consumes messages of type T from it.
 
 ### ```SingleFetchRabbitConsumer<T>```
 SingleFetchRabbitConsumer<T> is a variant of RabbitMQ consumer which allows only for BasicGet. It connects directly to a RabbitMQ exchange and consumes messages of type T one message at a time, only when requested.
