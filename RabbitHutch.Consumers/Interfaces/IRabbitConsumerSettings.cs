@@ -1,31 +1,23 @@
-﻿namespace RabbitHutch.Consumers.Interfaces
+﻿using RabbitHutch.Core.Settings.Interfaces;
+
+namespace RabbitHutch.Consumers.Interfaces
 {
-    public interface IRabbitConsumerSettings
+    public interface IRabbitConsumerSettings : IRabbitSettings
     {
         /// <summary>
-        /// Gets or sets the connection string.
+        /// Gets or sets the queue declaration settings.
         /// </summary>
-        Uri? ConnectionString { get; set; }
+        IQueueDeclarationSettings? QueueDeclarationSettings { get; set; }
 
         /// <summary>
-        /// Gets or sets the exchange name.
+        /// Gets or sets the value indicating whether to declare the queue.
         /// </summary>
-        string? ExchangeName { get; set; }
-
-        /// <summary>
-        /// Gets or sets the value indicating whether to declare exchange.
-        /// </summary>
-        bool DeclareExchange { get; set; }
+        bool DeclareQueue { get; }
 
         /// <summary>
         /// Gets or sets the queue name.
         /// </summary>
         string? QueueName { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether automatic recovery is enabled.
-        /// </summary>
-        bool AutomaticRecovery { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to auto ack.
@@ -41,11 +33,6 @@
         /// Gets or sets a value indicating whether to requeue on nack.
         /// </summary>
         bool RequeueOnNack { get; set; }
-
-        /// <summary>
-        /// Gets or sets the keys path.
-        /// </summary>
-        string? KeysPath { get; set; }
 
         /// <summary>
         /// Gets or sets the prefetch count.

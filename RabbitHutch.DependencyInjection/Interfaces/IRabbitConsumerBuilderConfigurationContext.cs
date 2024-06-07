@@ -2,8 +2,9 @@
 using RabbitHutch.Core.ConnectionLifecycle;
 using RabbitHutch.Core.Delegates;
 using RabbitHutch.Core.Serialization;
+using RabbitHutch.Core.Settings.Interfaces;
 
-namespace RabbitHutch.DependencyInjection
+namespace RabbitHutch.DependencyInjection.Interfaces
 {
     /// <summary>
     /// Interface for Rabbit publisher builder configuration context.
@@ -16,6 +17,9 @@ namespace RabbitHutch.DependencyInjection
         /// </summary>
         string Name { get; }
 
+        /// <summary>
+        /// Gets the logger.
+        /// </summary>
         ILogger? Logger { get; }
 
         /// <summary>
@@ -32,6 +36,16 @@ namespace RabbitHutch.DependencyInjection
         /// Gets the message recieved delegate.
         /// </summary>
         AsyncNewMessageCallbackDelegate<T> MessageCallbackDelegate { get; }
+
+        /// <summary>
+        /// Gets the exchange declaration settings.
+        /// </summary>
+        IExchangeDeclarationSettings? ExchangeDeclarationSettings { get; }
+
+        /// <summary>
+        /// Gets the queue declaration settings.
+        /// </summary>
+        IQueueDeclarationSettings? QueueDeclarationSettings { get; }
 
         /// <summary>
         /// Sets the serializer.
@@ -69,5 +83,20 @@ namespace RabbitHutch.DependencyInjection
         /// <param name="logger"></param>
         /// <returns></returns>
         RabbitConsumerBuilderConfigurationContext<T> WithLogger(ILogger logger);
+
+        /// <summary>
+        /// Sets the exchange declaration settings.
+        /// </summary>
+        /// <param name="exchangeDeclarationSettings"></param>
+        /// <returns></returns>
+        RabbitConsumerBuilderConfigurationContext<T> WithExchangeDeclarationSettings(IExchangeDeclarationSettings exchangeDeclarationSettings);
+
+
+        /// <summary>
+        /// Sets the queue declaration settings.
+        /// </summary>
+        /// <param name="queueDeclarationSettings"></param>
+        /// <returns></returns>
+        RabbitConsumerBuilderConfigurationContext<T> WithQueueDeclarationSettings(IQueueDeclarationSettings queueDeclarationSettings);
     }
 }

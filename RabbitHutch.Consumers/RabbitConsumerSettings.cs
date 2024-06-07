@@ -1,5 +1,5 @@
 ﻿using RabbitHutch.Consumers.Interfaces;
-using System.Net.Mime;
+using RabbitHutch.Core.Settings.Interfaces;
 
 namespace RabbitHutch.Consumers
 {
@@ -16,9 +16,14 @@ namespace RabbitHutch.Consumers
         public string? ExchangeName { get; set; }
 
         /// <summary>
-        /// Gets or sets the value indicating whether to declare exchange.
+        /// True if the exchange should be declared.
         /// </summary>
-        public bool DeclareExchange { get; set; }
+        public bool DeclareExchange => ExchangeDeclarationSettings is not null;
+
+        /// <summary>
+        /// True if the queue should be declared.
+        /// </summary>
+        public bool DeclareQueue => QueueDeclarationSettings is not null;
 
         /// <summary>
         /// Gets or sets the queue name.
@@ -65,6 +70,16 @@ namespace RabbitHutch.Consumers
         /// Gets or sets the management base URI.
         /// </summary>
         public Uri? ManagementBaseUri { get; set; }
+
+        /// <summary>
+        /// Gets or sets the exchange declaration settings.
+        /// </summary>
+        public IExchangeDeclarationSettings? ExchangeDeclarationSettings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the queue declaration settings.
+        /// </summary>
+        public IQueueDeclarationSettings? QueueDeclarationSettings { get; set; }
 
         /// <summary>
         /// Gets the <see cref="ManagementBaseUri"/> user info.

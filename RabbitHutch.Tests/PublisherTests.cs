@@ -20,7 +20,7 @@ namespace RabbitHutch.Tests
         /// Create a dummy publisher and publish a message.
         /// </summary>
         [Fact]
-        public async void SimulateMessagePublication_DummyRabbitPublisher()
+        public async Task SimulateMessagePublication_DummyRabbitPublisher()
         {
             RabbitPublisherSettings publisherSettings = new(CONNECTION_STRING, EXCHANGE_NAME);
 
@@ -35,7 +35,7 @@ namespace RabbitHutch.Tests
         /// Publish a single message with a <see cref="RabbitPublisher{T}"/>.
         /// </summary>
         [Fact]
-        public async void PublishSingleMessage_RabbitPublisher()
+        public async Task PublishSingleMessage_RabbitPublisher()
         {
             RabbitPublisherSettings publisherSettings = new(CONNECTION_STRING, EXCHANGE_NAME);
 

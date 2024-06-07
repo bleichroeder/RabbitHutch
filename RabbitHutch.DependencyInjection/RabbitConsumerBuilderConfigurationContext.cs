@@ -2,6 +2,8 @@
 using RabbitHutch.Core.ConnectionLifecycle;
 using RabbitHutch.Core.Delegates;
 using RabbitHutch.Core.Serialization;
+using RabbitHutch.Core.Settings.Interfaces;
+using RabbitHutch.DependencyInjection.Interfaces;
 
 namespace RabbitHutch.DependencyInjection
 {
@@ -40,6 +42,16 @@ namespace RabbitHutch.DependencyInjection
         /// Gets or sets a value indicating whether the publisher is registered as a hosted service.
         /// </summary>
         public bool AsHostedService { get; private set; }
+
+        /// <summary>
+        /// Gets the exchange declaration settings.
+        /// </summary>
+        public IExchangeDeclarationSettings? ExchangeDeclarationSettings { get; private set; }
+
+        /// <summary>
+        /// Gets the exchange declaration settings.
+        /// </summary>
+        public IQueueDeclarationSettings? QueueDeclarationSettings { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RabbitPublisherBuilderConfigurationContext{T}"/> class.
@@ -104,6 +116,28 @@ namespace RabbitHutch.DependencyInjection
         public RabbitConsumerBuilderConfigurationContext<T> WithLogger(ILogger logger)
         {
             Logger = logger;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the exchange declaration settings.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        public RabbitConsumerBuilderConfigurationContext<T> WithExchangeDeclarationSettings(IExchangeDeclarationSettings settings)
+        {
+            ExchangeDeclarationSettings = settings;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the queue declaration settings.
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <returns></returns>
+        public RabbitConsumerBuilderConfigurationContext<T> WithQueueDeclarationSettings(IQueueDeclarationSettings settings)
+        {
+            QueueDeclarationSettings = settings;
             return this;
         }
     }

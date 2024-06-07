@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using RabbitHutch.Consumers;
 using RabbitHutch.Consumers.Interfaces;
 using RabbitHutch.Core.ConnectionLifecycle;
+using RabbitHutch.DependencyInjection.Interfaces;
 using RabbitHutch.Publishers;
 using RabbitHutch.Publishers.Interfaces;
 
@@ -83,6 +84,8 @@ namespace RabbitHutch.DependencyInjection
 
             RegisterTypeIfNotExists<T>();
 
+            publisherSettings.ExchangeDeclarationSettings = publisherConfigurationContext.ExchangeDeclarationSettings ?? publisherSettings.ExchangeDeclarationSettings;
+
             IRabbitPublisher<T> publisher = _publisherFactory.CreatePublisher<T>(publisherSettings,
                                                                                  lifecycleProfile,
                                                                                  publisherConfigurationContext.SerializerDelegate,
@@ -117,6 +120,8 @@ namespace RabbitHutch.DependencyInjection
             RabbitPublisherBuilderConfigurationContext<T> publisherConfigurationContext = ExecutePublisherConfigurationContext(builderContext);
 
             RegisterTypeIfNotExists<T>();
+
+            publisherSettings.ExchangeDeclarationSettings = publisherConfigurationContext.ExchangeDeclarationSettings ?? publisherSettings.ExchangeDeclarationSettings;
 
             IRabbitPublisher<T> publisher = _publisherFactory.CreateQueueingPublisher<T>(publisherSettings,
                                                                                          lifecycleProfile,
@@ -154,6 +159,8 @@ namespace RabbitHutch.DependencyInjection
 
             RegisterTypeIfNotExists<T>();
 
+            publisherSettings.ExchangeDeclarationSettings = publisherConfigurationContext.ExchangeDeclarationSettings ?? publisherSettings.ExchangeDeclarationSettings;
+
             IRabbitPublisher<T> publisher = _publisherFactory.CreateDummyPublisher<T>(publisherSettings,
                                                                                       lifecycleProfile,
                                                                                       publisherConfigurationContext.SerializerDelegate,
@@ -189,11 +196,90 @@ namespace RabbitHutch.DependencyInjection
 
             RegisterTypeIfNotExists<T>();
 
+            consumerSettings.ExchangeDeclarationSettings = consumerConfigurationContext.ExchangeDeclarationSettings ?? consumerSettings.ExchangeDeclarationSettings;
+            consumerSettings.QueueDeclarationSettings = consumerConfigurationContext.QueueDeclarationSettings ?? consumerSettings.QueueDeclarationSettings;
+
             IRabbitConsumer<T> consumer = _consumerFactory.CreateDummyConsumer<T>(consumerSettings,
                                                                                   lifecycleProfile,
                                                                                   consumerConfigurationContext.MessageCallbackDelegate,
                                                                                   consumerConfigurationContext.DeserializationDelegate,
                                                                                   name: consumerConfigurationContext.Name);
+
+            AddAsHostedServiceIfRequired(consumer, consumerConfigurationContext.AsHostedService);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Builds and registers a <see cref="RabbitConsumer{T}"/> for the specified type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="consumerSettings"></param>
+        /// <param name="builderContext"></param>
+        /// <returns></returns>
+        public RabbitHutchBuilder AddConsumer<T>(IRabbitConsumerSettings consumerSettings, Action<IRabbitConsumerBuilderConfigurationContext<T>> builderContext) where T : notnull
+            => AddConsumer<T>(consumerSettings, ConnectionLifecycleProfiles.DefaultConnectionLifecycleProfile(), builderContext);
+
+        /// <summary>
+        /// Builds and registers a <see cref="RabbitConsumer{T}"/> for the specified type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="consumerSettings"></param>
+        /// <param name="lifecycleProfile"></param>
+        /// <param name="builderContext"></param>
+        /// <returns></returns>
+        public RabbitHutchBuilder AddConsumer<T>(IRabbitConsumerSettings consumerSettings, IConnectionLifecycleProfile lifecycleProfile, Action<IRabbitConsumerBuilderConfigurationContext<T>> builderContext) where T : notnull
+        {
+            IRabbitConsumerBuilderConfigurationContext<T> consumerConfigurationContext = ExecuteConsumerConfigurationContext(builderContext);
+
+            RegisterTypeIfNotExists<T>();
+
+            consumerSettings.ExchangeDeclarationSettings = consumerConfigurationContext.ExchangeDeclarationSettings ?? consumerSettings.ExchangeDeclarationSettings;
+            consumerSettings.QueueDeclarationSettings = consumerConfigurationContext.QueueDeclarationSettings ?? consumerSettings.QueueDeclarationSettings;
+
+            IRabbitConsumer<T> consumer = _consumerFactory.CreateConsumer<T>(consumerSettings,
+                                                                             lifecycleProfile,
+                                                                             consumerConfigurationContext.MessageCallbackDelegate,
+                                                                             consumerConfigurationContext.DeserializationDelegate,
+                                                                             name: consumerConfigurationContext.Name);
+
+            AddAsHostedServiceIfRequired(consumer, consumerConfigurationContext.AsHostedService);
+
+            return this;
+        }
+
+        /// <summary>
+        /// Builds and registers a <see cref="SingleFetchRabbitConsumer{T}"/> for the specified type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="consumerSettings"></param>
+        /// <param name="builderContext"></param>
+        /// <returns></returns>
+        public RabbitHutchBuilder AddSingleFetchConsumer<T>(IRabbitConsumerSettings consumerSettings, Action<IRabbitConsumerBuilderConfigurationContext<T>> builderContext) where T : notnull
+            => AddSingleFetchConsumer<T>(consumerSettings, ConnectionLifecycleProfiles.DefaultConnectionLifecycleProfile(), builderContext);
+
+        /// <summary>
+        /// Builds and registers a <see cref="SingleFetchRabbitConsumer{T}"/> for the specified type.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="consumerSettings"></param>
+        /// <param name="lifecycleProfile"></param>
+        /// <param name="builderContext"></param>
+        /// <returns></returns>
+        public RabbitHutchBuilder AddSingleFetchConsumer<T>(IRabbitConsumerSettings consumerSettings, IConnectionLifecycleProfile lifecycleProfile, Action<IRabbitConsumerBuilderConfigurationContext<T>> builderContext) where T : notnull
+        {
+            IRabbitConsumerBuilderConfigurationContext<T> consumerConfigurationContext = ExecuteConsumerConfigurationContext(builderContext);
+
+            RegisterTypeIfNotExists<T>();
+
+            consumerSettings.ExchangeDeclarationSettings = consumerConfigurationContext.ExchangeDeclarationSettings ?? consumerSettings.ExchangeDeclarationSettings;
+            consumerSettings.QueueDeclarationSettings = consumerConfigurationContext.QueueDeclarationSettings ?? consumerSettings.QueueDeclarationSettings;
+
+            IRabbitConsumer<T> consumer = _consumerFactory.CreateSingleFetchConsumer<T>(consumerSettings,
+                                                                                        lifecycleProfile,
+                                                                                        consumerConfigurationContext.MessageCallbackDelegate,
+                                                                                        consumerConfigurationContext.DeserializationDelegate,
+                                                                                        name: consumerConfigurationContext.Name);
 
             AddAsHostedServiceIfRequired(consumer, consumerConfigurationContext.AsHostedService);
 
