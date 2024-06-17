@@ -34,7 +34,7 @@ DummyRabbitConsumer<T> is designed for demonstration and testing purposes. It do
 ### ```RabbitHutch.DependencyInjection```
 #### Adding a ```IRabbitPublisher```
 In this example, we configure RabbitHutch to add a dummy publisher for ```WeatherForecast``` objects. This publisher will send messages to a specified RabbitMQ exchange.
-```
+```csharp
 builder.Services.BuildRabbitHutch(hutchBuilder =>
 {
     // Add a RabbitPublisher.
@@ -65,7 +65,7 @@ builder.Services.BuildRabbitHutch(hutchBuilder =>
 
 #### Using a Publisher
 The ```IRabbitPublisherFactory``` is injected and used to access any of your registered publishers by name/type.
-```
+```csharp
 [ApiController]
 [Route("[controller]")]
 public class WeatherForecastController(IRabbitPublisherFactory rabbitPublisherFactory) : ControllerBase
@@ -87,7 +87,7 @@ public class WeatherForecastController(IRabbitPublisherFactory rabbitPublisherFa
 ### Adding a ```IRabbitConsumer```
 Here, we configure RabbitHutch to add a dummy consumer for ```WeatherForecast``` objects. This consumer will consume messages from a specified RabbitMQ queue.
 
-```
+```csharp
 builder.Services.BuildRabbitHutch(hutchBuilder =>
 {
     // Add a RabbitConsumer.
@@ -131,14 +131,14 @@ Basic consumers will run asynchronously for the life of the service, but can be 
 ### Manual Creation of Publishers and Consumers
 If you prefer not to use dependency injection, you can manually create ```IRabbitPublisher``` and ```IRabbitConsumer``` instances.
 
-```
+```csharp
 DummyRabbitPublisher<string> publisher = new(new RabbitPublisherSettings()
 {
     ConnectionString = new Uri("amqp://guest:guest@localhost:5672/"),
     ExchangeName = "TestExchange"
 }, Logger);
 ```
-```
+```csharp
 DummyRabbitConsumer<TestClass> consumer = new(new RabbitConsumerSettings()
 {
     ConnectionString = new Uri("amqp://guest:guest@localhost:5672/"),
@@ -161,7 +161,7 @@ These settings are configured using ```IQueueDeclarationSettings``` and ```IExch
 If these settings are not specified no declarations are performed.
 
 #### Consumer Exchange and Queue Declaration Configuration
-```
+```csharp
 RabbitConsumerSettings consumerSettings = new(CONNECTION_STRING, EXCHANGE_NAME, QUEUE_NAME)
 {
     ManagementBaseUri = new Uri(MANAGEMENT_BASE_URI),
@@ -179,7 +179,7 @@ RabbitConsumerSettings consumerSettings = new(CONNECTION_STRING, EXCHANGE_NAME, 
 };
 ```
 #### Publisher Exchange Declaration Configuration
-```
+```csharp
 RabbitPublisherSettings publisherSettings = new(CONNECTION_STRING, EXCHANGE_NAME)
 {
     ExchangeDeclarationSettings = new ExchangeDeclarationSettings()
